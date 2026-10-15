@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "lint": "node --check src/main.js",
+    "lint": "node --check public/js/main.js && node --check public/js/views.js && node --check public/js/api.js && node --check public/js/router.js",
     "test": "echo 'no tests yet' && exit 0"
   }
 }
