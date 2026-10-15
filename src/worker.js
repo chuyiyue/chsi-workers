@@ -353,6 +353,28 @@ async function handleApi(env, req, url) {
     }
   }
 
+  /* --- 用户自助修改密码 --- */
+  if (path === "/api/change-password" && method === "POST") {
+    const r = await requireUser(env, req);
+    if (r.err) return r.err;
+    if (r.user.role === "admin") {
+      return json({ ok: false, error: "管理员密码请通过部署密钥修改" }, 400);
+    }
+    const b = await req.json().catch(() => ({}));
+    const stored = await env.KV.get(`user:${r.user.username}`, "json");
+    if (!stored) return json({ ok: false, error: "用户不存在" }, 404);
+    const ok = (await hashPassword(b.oldPassword || "", stored.salt)) === stored.passHash;
+    if (!ok) return json({ ok: false, error: "原密码错误" }, 400);
+    const np = b.newPassword || "";
+    if (np.length < 6 || np.length > 64) {
+      return json({ ok: false, error: "新密码长度需为 6~64 位" }, 400);
+    }
+    stored.salt = randHex(16);
+    stored.passHash = await hashPassword(np, stored.salt);
+    await env.KV.put(`user:${stored.username}`, JSON.stringify(stored));
+    return json({ ok: true });
+  }
+
   /* --- 用户管理（管理员） --- */
   if (path === "/api/users" && method === "GET") {
     const r = await requireAdmin(env, req);
@@ -369,8 +391,39 @@ async function handleApi(env, req, url) {
     return json({ ok: true, users });
   }
 
+  /* --- 新增用户（管理员） --- */
+  if (path === "/api/users" && method === "POST") {
+    const r = await requireAdmin(env, req);
+    if (r.err) return r.err;
+    const b = await req.json().catch(() => ({}));
+    const username = (b.username || "").trim();
+    const password = b.password || "";
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      return json({ ok: false, error: "用户名需为 3~20 位字母、数字或下划线" }, 400);
+    }
+    if (username.toLowerCase() === "admin") {
+      return json({ ok: false, error: "该用户名为系统保留" }, 400);
+    }
+    if (password.length < 6 || password.length > 64) {
+      return json({ ok: false, error: "密码长度需为 6~64 位" }, 400);
+    }
+    if (await env.KV.get(`user:${username}`)) {
+      return json({ ok: false, error: "用户名已存在" }, 409);
+    }
+    const id = randHex(8);
+    const salt = randHex(16);
+    const user = {
+      id, username, salt,
+      passHash: await hashPassword(password, salt),
+      role: "user",
+      createdAt: new Date().toISOString(),
+    };
+    await env.KV.put(`user:${username}`, JSON.stringify(user));
+    return json({ ok: true, user: { id, username, createdAt: user.createdAt } });
+  }
+
   const um = path.match(/^\/api\/users\/([0-9a-f]{16})$/);
-  if (um && method === "DELETE") {
+  if (um) {
     const r = await requireAdmin(env, req);
     if (r.err) return r.err;
     const uid = um[1];
@@ -381,11 +434,25 @@ async function handleApi(env, req, url) {
       if (u && u.id === uid) { targetKey = k.name; target = u; break; }
     }
     if (!target) return json({ ok: false, error: "用户不存在" }, 404);
-    // 删除该用户及其全部学籍
-    const sl = await env.KV.list({ prefix: `student:${uid}:` });
-    for (const k of sl.keys) await env.KV.delete(k.name);
-    await env.KV.delete(targetKey);
-    return json({ ok: true });
+    // 修改用户密码
+    if (method === "PUT") {
+      const b = await req.json().catch(() => ({}));
+      const password = b.password || "";
+      if (password.length < 6 || password.length > 64) {
+        return json({ ok: false, error: "密码长度需为 6~64 位" }, 400);
+      }
+      target.salt = randHex(16);
+      target.passHash = await hashPassword(password, target.salt);
+      await env.KV.put(targetKey, JSON.stringify(target));
+      return json({ ok: true });
+    }
+    // 删除用户及其全部学籍
+    if (method === "DELETE") {
+      const sl = await env.KV.list({ prefix: `student:${uid}:` });
+      for (const k of sl.keys) await env.KV.delete(k.name);
+      await env.KV.delete(targetKey);
+      return json({ ok: true });
+    }
   }
 
   /* --- 公开学籍查询 --- */
@@ -446,6 +513,8 @@ export default {
     }
     // 非 /api/* 请求：优先内联静态资源（部署包），其次 404；
     // 本地 dev 时 public/* 由 wrangler [assets] 直接 serving
-    return serveAsset(url.pathname) || new Response("Not Found", { status: 404 });
+    let p = url.pathname;
+    if (p === "/admin") p = "/admin.html"; // 管理后台独立入口
+    return serveAsset(p) || new Response("Not Found", { status: 404 });
   },
 };

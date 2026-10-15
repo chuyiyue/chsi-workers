@@ -22,7 +22,7 @@
       <button class="btn" type="submit">登 录</button>
     </form>
     <div class="login-links"><a href="register.html">立即注册</a><span style="color:#ddd">|</span><a href="help.html">帮助中心</a></div>
-    <p style="text-align:center;color:#bbb;font-size:12px;margin-top:14px">管理员请使用 admin 账号登录</p>
+    <p style="text-align:center;color:#bbb;font-size:12px;margin-top:14px">管理员请前往 <a href="/admin">/admin</a> 登录后台</p>
   </div>
   <div class="footer">
     <div>Copyright © 2026 某某职业技能培训学校</div>
@@ -42,9 +42,14 @@
     showMsg("lmsg", "登录中…", true);
     try {
       const d = await api("/api/login", { method: "POST", body: JSON.stringify(body) });
+      if (d.user.role === "admin") {
+        await api("/api/logout", { method: "POST" }).catch(() => {});
+        showMsg("lmsg", "管理员请使用 /admin 后台入口登录");
+        return;
+      }
       showMsg("lmsg", "登录成功，正在进入…", true);
       const next = new URLSearchParams(location.search).get("next");
-      setTimeout(() => { location.href = next || (d.user.role === "admin" ? "admin.html" : "archive.html"); }, 400);
+      setTimeout(() => { location.href = next || "archive.html"; }, 400);
     } catch (err) { showMsg("lmsg", err.message); }
   });
 })();
