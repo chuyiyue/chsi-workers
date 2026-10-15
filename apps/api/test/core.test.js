@@ -2,8 +2,17 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { SELF } from "cloudflare:test";
 
 const BASE = "http://example.com";
+// 限流按 IP 计数；默认 CF-Connecting-IP=unknown 会让所有用例共用同一个桶，
+// 注册 5/min、登录 10/min 会被跨用例打满 → 用例互相污染。
+// 每个请求发一个独立 IP；需要验证限流的用例显式指定固定 IP。
+let ipSeq = 0;
+const nextIp = () => `10.${(++ipSeq >> 16) & 255}.${(ipSeq >> 8) & 255}.${ipSeq & 255}`;
 async function F(path, init = {}) {
-  return SELF.fetch(BASE + path, init);
+  const { ip, headers, ...rest } = init;
+  return SELF.fetch(BASE + path, {
+    ...rest,
+    headers: { "CF-Connecting-IP": ip || nextIp(), ...(headers || {}) },
+  });
 }
 
 const H = { "Content-Type": "application/json" };
@@ -18,8 +27,8 @@ function parseCookie(r) {
   const m = sc.match(/session=([0-9a-f]+)/);
   return m ? `session=${m[1]}` : "";
 }
-async function login(username, password) {
-  const r = await F("/api/login", { method: "POST", headers: H, body: JSON.stringify({ username, password }) });
+async function login(username, password, ip) {
+  const r = await F("/api/login", { method: "POST", headers: H, ip, body: JSON.stringify({ username, password }) });
   return { r, cookie: parseCookie(r) };
 }
 async function mkStudent(cookie, extra = {}) {
@@ -66,10 +75,12 @@ describe("register & login", () => {
 
   it("连续错密码触发限流 429", async () => {
     const u = uniq();
+    // 固定 IP：限流按 IP 计数，需在同一桶里连打
+    const ip = "192.0.2.77";
     await register(u);
     let last = 0;
     for (let i = 0; i < 12; i++) {
-      const r = await login(u, "wrongpw" + i);
+      const r = await login(u, "wrongpw" + i, ip);
       last = r.r.status;
       if (last === 429) break;
     }
@@ -122,19 +133,26 @@ describe("session lifecycle", () => {
 
 /* ---------------- students：分页 / 隔离 / 照片 ---------------- */
 describe("students", () => {
-  it("1080 条记录全可见（>1000 分页不截断）", { timeout: 600_000 }, async () => {
+  it("1010 条记录全可见（>1000 分页不截断）", { timeout: 600_000 }, async () => {
     const u = uniq();
     const { cookie } = await register(u);
-    // 并发、限制并发分批写入
-    const N = 1080;
+    // 并发、限制并发分批写入；记录每条 sid，验证全部可翻到（旧版 KV list 1000 截断会丢尾部）
+    const N = 1010;
     const batch = 20;
+    const created = new Set();
     for (let i = 0; i < N; i += batch) {
-      await Promise.all(
-        Array.from({ length: batch }, (_, j) =>
+      const n = Math.min(batch, N - i); // 尾批截断（否则 i=1000 那轮会多发 10 条）
+      const rs = await Promise.all(
+        Array.from({ length: n }, (_, j) =>
           mkStudent(cookie, { name: `学员${i + j}`, idNumber: `11010119900101${String((i + j) % 10000).padStart(4, "0")}` })
         )
       );
+      for (const x of rs) {
+        expect(x.r.status).toBe(200);
+        created.add(x.d.student.sid);
+      }
     }
+    expect(created.size).toBe(N);
     let cursor = 0; const seen = new Set(); let guard = 0;
     while (true) {
       const r = await F(`/api/students?limit=100&cursor=${cursor}`, { headers: { Cookie: cookie } });
@@ -143,7 +161,10 @@ describe("students", () => {
       if (!d.nextCursor || guard++ > 30) break;
       cursor = d.nextCursor;
     }
-    expect(seen.size).toBe(N);
+    // 关键断言：创建的每一条都能通过分页翻到（旧版静默截断会丢尾部）
+    const missing = [...created].filter((sid) => !seen.has(sid));
+    expect(missing, `分页丢失 ${missing.length} 条`).toEqual([]);
+    expect(seen.size).toBe(created.size);
   });
 
   it("用户隔离：别人的记录 404", async () => {

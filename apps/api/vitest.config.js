@@ -2,17 +2,15 @@ import { defineWorkersConfig } from "@cloudflare/vitest-pool-workers/config";
 
 export default defineWorkersConfig({
   test: {
+    // wrangler.test.jsonc：不带 r2_buckets —— vitest-pool-workers 的 R2
+    // isolated storage 有缺陷（AssertionError: Expected .sqlite, got ...sqlite-shm）。
+    // 照片用例走 KV 降级路径同样覆盖拆键逻辑。
     poolOptions: {
       workers: {
-        wrangler: { configPath: "./wrangler.jsonc" },
+        wrangler: { configPath: "./wrangler.test.jsonc" },
         miniflare: {
-          // 测试态：不绑 ASSETS；SELF.fetch 需要完整 URL 基址
           url: "http://example.com",
-          // 存储放稳定目录（TMPDIR 会被会话间清理，isolated storage 断言会误报）
-          storagePath: "../../.wrangler/test-state",
-          bindings: {
-            ADMIN_PASSWORD: "test-admin-pw",
-          },
+          bindings: { ADMIN_PASSWORD: "test-admin-pw" },
           kvNamespaces: ["KV"],
         },
       },

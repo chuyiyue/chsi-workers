@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "xuexin-demo-test",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "kv_namespaces": [
+    { "binding": "KV", "id": "test-kv-placeholder" }
+  ],
+  "vars": {
+    "VERSION": "test"
+  }
+}
