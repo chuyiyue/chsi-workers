@@ -1,5 +1,5 @@
 # API 部署专用配置：dist/worker.js 已内联全部静态资源，无需 [assets]
-name = "xuexin-demo"
+name = "chsi-workers"
 main = "dist/worker.js"
 compatibility_date = "2026-10-01"
 

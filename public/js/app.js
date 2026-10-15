@@ -108,6 +108,11 @@ async function applySettings() {
   catch (e) { return null; }
   const name = s.siteName || "学籍档案";
   document.querySelectorAll("[data-site-name]").forEach((el) => { el.textContent = name; });
+  // 浏览器标签页标题同步网站名字
+  if (document.title) {
+    const parts = document.title.split(" - ");
+    document.title = (parts.length > 1 ? parts[0] : document.title) + " - " + name;
+  }
   if (s.footerText !== undefined) document.querySelectorAll("[data-site-footer]").forEach((el) => { el.textContent = s.footerText; });
   document.querySelectorAll(".demo-tag").forEach((el) => { el.style.display = s.showDemoBadge === false ? "none" : ""; });
   if (s.icon) {
