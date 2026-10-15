@@ -1,0 +1,19 @@
+/* 管理后台 v3：三 nav 板块——用户管理 / 学籍管理 / 网站设置 */
+.nav a[data-nav="studs"], .nav a[data-nav="settings"] {
+  /* 占位：复用 .nav a 通用样式 */
+}
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f3f5; }
+.setting-row:last-child { border-bottom: none; }
+.setting-row .label { font-size: 14px; font-weight: 500; }
+.setting-row .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.switch { position: relative; width: 44px; height: 24px; flex: none; cursor: pointer; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider { position: absolute; inset: 0; background: #d1d5db; border-radius: 24px; transition: .2s; }
+.switch .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+.switch input:checked + .slider { background: var(--green); }
+.switch input:checked + .slider::before { transform: translateX(20px); }
+.search-mini { max-width: 320px; }
+.record-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.record-card .head { display: flex; gap: 10px; align-items: center; }
+.record-card .owner { font-size: 12px; color: var(--muted); }
+.record-card .fields-hint { font-size: 12px; color: var(--muted); margin-top: 8px; }

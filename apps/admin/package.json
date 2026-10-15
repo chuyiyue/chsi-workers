@@ -1,0 +1,9 @@
+{
+  "name": "@chsi/admin",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "lint": "node --check public/js/main.js && node --check public/js/users.js && node --check public/js/studs.js && node --check public/js/settings.js && node --check public/js/shared.js",
+    "test": "echo 'no tests yet' && exit 0"
+  }
+}
