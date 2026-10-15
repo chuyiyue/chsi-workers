@@ -11,9 +11,9 @@
   <div class="app-header"><span>用户登录</span><span class="demo-tag">演示</span></div>
   <div class="login-wrap">
     <div class="login-logo">
-      <div class="mark">学</div>
-      <h2>学籍档案</h2>
-      <p>某某职业技能培训学校 · 演示系统</p>
+      <div class="mark" data-site-avatar>学</div>
+      <h2 data-site-name>学籍档案</h2>
+      <p>学员档案信息查询 · 演示系统</p>
     </div>
     <form id="login-form">
       <div class="field"><label>用户名</label><input name="username" placeholder="请输入用户名" autocomplete="username"></div>
@@ -21,17 +21,18 @@
       <div class="form-msg" id="lmsg"></div>
       <button class="btn" type="submit">登 录</button>
     </form>
-    <div class="login-links"><a href="register.html">立即注册</a><span style="color:#ddd">|</span><a href="help.html">帮助中心</a></div>
+    <div class="login-links"><a href="help.html">帮助中心</a></div>
     <p style="text-align:center;color:#bbb;font-size:12px;margin-top:14px">管理员请前往 <a href="/admin">/admin</a> 登录后台</p>
   </div>
   <div class="footer">
-    <div>Copyright © 2026 某某职业技能培训学校</div>
+    <div data-site-footer>Copyright © 2026 某某职业技能培训学校</div>
     <div class="disclaimer">演示系统 · 与中国高等教育学生信息网（学信网）无任何关联</div>
   </div>
 </div>
 <script src="js/app.js"></script>
 <script>
 (async function () {
+  applySettings();
   const u = await currentUser();
   if (u) { location.href = u.role === "admin" ? "admin.html" : "archive.html"; return; }
   document.getElementById("login-form").addEventListener("submit", async (e) => {

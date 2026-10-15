@@ -46,7 +46,7 @@
         </div>
       </div>
       <div class="footer">
-        <div>Copyright © 2026 某某职业技能培训学校</div>
+        <div data-site-footer>Copyright © 2026 某某职业技能培训学校</div>
         <div class="disclaimer">演示系统 · 与中国高等教育学生信息网（学信网）无任何关联</div>
       </div>
     </div>
@@ -180,8 +180,9 @@ function detailHTML(r, kind) {
       + row("学号", r.studentNo) + row("入学日期", r.enrollDate)
       + row("学籍状态", statusText(r.status))
       + row(r.status === "已结业" ? "离校日期" : "预计结业日期", r.gradDate);
+  const customRows = (r.custom || []).map((f) => row(esc(f.k), f.v)).join("");
   const banner = isXueli ? "" : `<div class="promo-banner"><h3>学员服务</h3><p>学籍档案自助服务（演示）</p></div>`;
-  return banner + head + `<div class="kv-list">${rows}</div>
+  return banner + head + `<div class="kv-list">${rows}${customRows}</div>
     <a class="report-btn" href="#" id="report-btn">查看验证报告</a>`;
 }
 function showDetail(sid, kind) {
@@ -255,7 +256,7 @@ function openMeForm(sid) {
   $("#me-form-title").textContent = sid ? "编辑学籍信息" : "新增学籍信息";
   const f = $("#me-form");
   f.innerHTML = studentFormHTML(rec || {});
-  bindPhotoInput(f);
+  bindPhotoInput(f); bindCustomFields(f);
   $("#me-form-msg").textContent = "";
   $("#me-home").style.display = "none";
   $("#me-record-form").style.display = "";
@@ -301,6 +302,7 @@ $("#back-btn").addEventListener("click", (e) => { e.preventDefault(); history.le
 $("#detail-back").addEventListener("click", (e) => { e.preventDefault(); showList(); });
 
 (async function init() {
+  applySettings();
   const u = await guard();
   if (!u) return;
   if (u.role === "admin") { location.href = "/admin"; return; }

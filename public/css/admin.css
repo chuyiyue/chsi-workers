@@ -55,7 +55,20 @@ input.in:focus, select.in:focus { outline: none; border-color: #111827; box-shad
 .btn.secondary:hover { background: #f9fafb; }
 .btn.danger { background: var(--red); }
 .btn.sm { padding: 7px 12px; font-size: 13px; }
+.btn.small { padding: 7px 12px; font-size: 13px; }
+.btn.ghost { background: #fff; color: var(--text); border: 1px solid #d1d5db; }
+.btn.ghost:hover { background: #f9fafb; }
 .btn.block { width: 100%; }
+/* 学籍表单内的照片与自定义字段输入 */
+#mr-form .field > label { display: block; font-size: 13px; font-weight: 500; margin: 14px 0 6px; }
+#mr-form .field > label:first-child { margin-top: 0; }
+input[data-photo-file], input[data-photo-url] { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; }
+.custom-row input { padding: 10px 12px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; }
+.cf-wrap { margin-top: 14px; }
+select.in { appearance: auto; }
+.filter-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.filter-row input[type="search"] { flex: 2; }
+.filter-row select { flex: 1; }
 .msg { font-size: 13px; min-height: 20px; margin-top: 10px; }
 .msg.error { color: var(--red); } .msg.ok { color: var(--green); }
 .pill { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 999px; background: #f3f4f6; color: #374151; }

@@ -41,7 +41,18 @@ function serveAsset(pathname) {
   });
 }
 
-/* ---------------- 基础工具 ---------------- */
+/* ---------------- 网站设置 ---------------- */
+const DEFAULT_SETTINGS = {
+  siteName: "学籍档案",
+  icon: "",
+  avatar: "",
+  footerText: "Copyright © 2026 某某职业技能培训学校",
+  showDemoBadge: true,
+};
+async function getSettings(env) {
+  const s = await env.KV.get("site:settings", "json").catch(() => null);
+  return { ...DEFAULT_SETTINGS, ...(s || {}) };
+}
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
@@ -155,6 +166,12 @@ function cleanPhoto(v) {
 
 function sanitizeStudent(b, idNumber, name) {
   const pick = (v, max = 60) => (v == null ? "" : String(v).slice(0, max));
+  const custom = Array.isArray(b.custom)
+    ? b.custom.slice(0, 30).map((f) => ({
+        k: String((f && f.k) || "").trim().slice(0, 30),
+        v: String((f && f.v) || "").trim().slice(0, 200),
+      })).filter((f) => f.k)
+    : [];
   return {
     name,
     gender: ["男", "女"].includes(b.gender) ? b.gender : "",
@@ -184,6 +201,7 @@ function sanitizeStudent(b, idNumber, name) {
     photo: cleanPhoto(b.photo),
     published: b.published !== false,
     remark: pick(b.remark, 200),
+    custom,
   };
 }
 
@@ -208,61 +226,58 @@ async function handleApi(env, req, url) {
     });
   }
 
-  /* --- 注册 --- */
-  if (path === "/api/register" && method === "POST") {
+  /* --- 网站设置（公开读取） --- */
+  if (path === "/api/settings" && method === "GET") {
+    return json({ ok: true, settings: await getSettings(env) });
+  }
+
+  /* --- 网站设置（管理员） --- */
+  if (path === "/api/settings" && method === "PUT") {
+    const r = await requireAdmin(env, req);
+    if (r.err) return r.err;
     const b = await req.json().catch(() => ({}));
-    const username = (b.username || "").trim();
-    const password = b.password || "";
-    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
-      return json({ ok: false, error: "用户名需为 3~20 位字母、数字或下划线" }, 400);
-    }
-    if (username.toLowerCase() === "admin") {
-      return json({ ok: false, error: "该用户名为系统保留" }, 400);
-    }
-    if (password.length < 6 || password.length > 64) {
-      return json({ ok: false, error: "密码长度需为 6~64 位" }, 400);
-    }
-    if (await env.KV.get(`user:${username}`)) {
-      return json({ ok: false, error: "用户名已存在" }, 409);
-    }
-    const id = randHex(8);
-    const salt = randHex(16);
-    const user = {
-      id, username, salt,
-      passHash: await hashPassword(password, salt),
-      role: "user",
-      createdAt: new Date().toISOString(),
+    const s = {
+      siteName: String(b.siteName || "").trim().slice(0, 40) || DEFAULT_SETTINGS.siteName,
+      icon: cleanPhoto(b.icon),
+      avatar: cleanPhoto(b.avatar),
+      footerText: String(b.footerText || "").trim().slice(0, 120),
+      showDemoBadge: b.showDemoBadge !== false,
     };
-    await env.KV.put(`user:${username}`, JSON.stringify(user));
+    await env.KV.put("site:settings", JSON.stringify(s));
+    return json({ ok: true, settings: s });
+  }
+
+  /* --- 注册（已关闭：用户仅由管理员创建） --- */
+  if (path === "/api/register" && method === "POST") {
+    return json({ ok: false, error: "公开注册已关闭，请联系管理员创建账号" }, 403);
+  }
+
+  /* --- 管理员登录（仅密码） --- */
+  if (path === "/api/admin-login" && method === "POST") {
+    const b = await req.json().catch(() => ({}));
+    const adminPw = env.ADMIN_PASSWORD;
+    if (!adminPw) {
+      return json({ ok: false, error: "管理员密码尚未设置，请联系系统部署人员" }, 503);
+    }
+    const ok = (await hashPassword(b.password || "", "admin-salt")) === (await hashPassword(adminPw, "admin-salt"));
+    if (!ok) return json({ ok: false, error: "密码错误" }, 401);
     const token = randHex(32);
-    await env.KV.put(`session:${token}`,
-      JSON.stringify({ userId: id, username, role: "user" }),
-      { expirationTtl: SESSION_TTL });
-    return json({ ok: true, user: { username, role: "user" } },
+    const user = { userId: "admin", username: "admin", role: "admin" };
+    await env.KV.put(`session:${token}`, JSON.stringify(user), { expirationTtl: SESSION_TTL });
+    return json({ ok: true, user: { username: "admin", role: "admin" } },
       200, { "Set-Cookie": sessionCookie(token) });
   }
 
-  /* --- 登录 --- */
+  /* --- 用户登录 --- */
   if (path === "/api/login" && method === "POST") {
     const b = await req.json().catch(() => ({}));
     const username = (b.username || "").trim();
     const password = b.password || "";
-    let user = null;
-    if (username.toLowerCase() === "admin") {
-      const adminPw = env.ADMIN_PASSWORD;
-      if (!adminPw) {
-        return json({ ok: false, error: "管理员密码尚未设置，请联系系统部署人员" }, 503);
-      }
-      const ok = (await hashPassword(password, "admin-salt")) === (await hashPassword(adminPw, "admin-salt"));
-      if (!ok) return json({ ok: false, error: "用户名或密码错误" }, 401);
-      user = { userId: "admin", username: "admin", role: "admin" };
-    } else {
-      const stored = await env.KV.get(`user:${username}`, "json");
-      if (!stored) return json({ ok: false, error: "用户名或密码错误" }, 401);
-      const ok = (await hashPassword(password, stored.salt)) === stored.passHash;
-      if (!ok) return json({ ok: false, error: "用户名或密码错误" }, 401);
-      user = { userId: stored.id, username: stored.username, role: stored.role };
-    }
+    const stored = await env.KV.get(`user:${username}`, "json");
+    if (!stored) return json({ ok: false, error: "用户名或密码错误" }, 401);
+    const ok = (await hashPassword(password, stored.salt)) === stored.passHash;
+    if (!ok) return json({ ok: false, error: "用户名或密码错误" }, 401);
+    const user = { userId: stored.id, username: stored.username, role: stored.role };
     const token = randHex(32);
     await env.KV.put(`session:${token}`, JSON.stringify(user), { expirationTtl: SESSION_TTL });
     return json({ ok: true, user: { username: user.username, role: user.role } },
