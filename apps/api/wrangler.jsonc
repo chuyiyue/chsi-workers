@@ -3,8 +3,12 @@
   "name": "xuexin-demo",
   "main": "src/index.js",
   "compatibility_date": "2026-10-01",
+  "account_id": "df9099b08aefcec67ce14c18f00c7b52",
   "kv_namespaces": [
-    { "binding": "KV", "id": "REPLACE_WITH_KV_ID" }
+    { "binding": "KV", "id": "3916197cddd64ffd8dd2522e57c732c6" }
+  ],
+  "r2_buckets": [
+    { "binding": "R2", "bucket_name": "chsi-photos" }
   ],
   "vars": {
     "VERSION": "v2-refactor"
@@ -14,6 +18,7 @@
   },
   "env": {
     "staging": {
+      "name": "xuexin-demo-staging",
       "vars": { "VERSION": "staging" }
     },
     "prod": {

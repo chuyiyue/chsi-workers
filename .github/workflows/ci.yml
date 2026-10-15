@@ -55,6 +55,8 @@ jobs:
         run: pnpm --filter @chsi/api exec wrangler deploy --env staging
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
 
   deploy-prod:
     needs: deploy-staging
@@ -75,3 +77,5 @@ jobs:
         run: pnpm --filter @chsi/api exec wrangler deploy --env prod
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
