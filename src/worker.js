@@ -33,10 +33,12 @@ function serveAsset(pathname) {
   const body = map[p];
   if (body == null) return null;
   const ext = p.slice(p.lastIndexOf("."));
+  // HTML 不做长缓存，保证发版后即时生效；静态资源可缓存
+  const cache = ext === ".html" ? "no-cache" : "public, max-age=3600";
   return new Response(body, {
     headers: {
       "Content-Type": MIME[ext] || "application/octet-stream",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": cache,
     },
   });
 }
