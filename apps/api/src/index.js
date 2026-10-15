@@ -1,6 +1,6 @@
 /**
  * 学员学籍信息平台（演示）— API Worker 入口
- * Phase 1：单 Worker 网关 —— /api/v1/* API，/admin/* 后台静态包，/* 前台静态包
+ * Phase 1：单 Worker 网关 —— /api/* API，/admin/* 后台静态包，/* 前台静态包
  */
 import { createRouter } from "./router.js";
 import { registerAuthRoutes } from "./routes/auth.js";
@@ -39,7 +39,7 @@ export default {
     const url = new URL(req.url);
 
     // 健康检查
-    if (url.pathname === "/api/v1/health") {
+    if (url.pathname === "/api/health") {
       return json({ ok: true, t: Date.now() });
     }
 

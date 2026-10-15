@@ -52,7 +52,7 @@ function summary(rec) {
 }
 
 export function registerStudentRoutes(router) {
-  router.add("GET", "/api/v1/students", async ({ req, env }) => {
+  router.add("GET", "/api/students", async ({ req, env }) => {
     const r = await requireUser(env, req);
     if (r.err) return r.err;
     const isAdm = r.user.role === "admin";
@@ -76,7 +76,7 @@ export function registerStudentRoutes(router) {
     return ok({ students: page, total, cursor, nextCursor });
   });
 
-  router.add("POST", "/api/v1/students", async ({ req, env }) => {
+  router.add("POST", "/api/students", async ({ req, env }) => {
     const r = await requireUser(env, req);
     if (r.err) return r.err;
     const b = asObject(await safeJson(req));
@@ -112,7 +112,7 @@ export function registerStudentRoutes(router) {
     return ok({ student: summary(rec) });
   });
 
-  const SID = "/api/v1/students/:sid";
+  const SID = "/api/students/:sid";
   router.add("GET", SID, async ({ req, env, params }) => {
     const r = await requireUser(env, req);
     if (r.err) return r.err;

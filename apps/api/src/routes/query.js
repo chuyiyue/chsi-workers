@@ -8,7 +8,7 @@ import { clientIp, rateLimit } from "../middleware/rateLimit.js";
 import { QUERY_RL_LIMIT, STATUS, REC_TYPE } from "@chsi/shared";
 
 export function registerQueryRoutes(router) {
-  router.add("POST", "/api/v1/query", async ({ req, env }) => {
+  router.add("POST", "/api/query", async ({ req, env }) => {
     const ip = clientIp(req);
     if (!(await rateLimit(env, "query", ip, QUERY_RL_LIMIT))) {
       return err(429, ERROR_CODES.RATE_LIMITED, "查询过于频繁，请稍后再试");

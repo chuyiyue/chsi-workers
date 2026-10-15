@@ -7,7 +7,7 @@ import { requireAdmin, invalidateUserSessions } from "../core/session.js";
 import { listAll, getJSON, putJSON } from "../core/kv.js";
 
 export function registerAdminUserRoutes(router) {
-  router.add("GET", "/api/v1/admin/users", async ({ req, env }) => {
+  router.add("GET", "/api/admin/users", async ({ req, env }) => {
     const r = await requireAdmin(env, req);
     if (r.err) return r.err;
     const keys = await listAll(env.KV, "user:");
@@ -25,7 +25,7 @@ export function registerAdminUserRoutes(router) {
     return ok({ users });
   });
 
-  router.add("POST", "/api/v1/admin/users", async ({ req, env }) => {
+  router.add("POST", "/api/admin/users", async ({ req, env }) => {
     const r = await requireAdmin(env, req);
     if (r.err) return r.err;
     const b = asObject(await safeJson(req));
@@ -46,7 +46,7 @@ export function registerAdminUserRoutes(router) {
     return ok({ user: { id: user.id, username: user.username, createdAt: user.createdAt } });
   });
 
-  router.add("PUT", "/api/v1/admin/users/:uid", async ({ req, env, params }) => {
+  router.add("PUT", "/api/admin/users/:uid", async ({ req, env, params }) => {
     const r = await requireAdmin(env, req);
     if (r.err) return r.err;
     const b = asObject(await safeJson(req));
@@ -62,7 +62,7 @@ export function registerAdminUserRoutes(router) {
     return ok();
   });
 
-  router.add("DELETE", "/api/v1/admin/users/:uid", async ({ req, env, params }) => {
+  router.add("DELETE", "/api/admin/users/:uid", async ({ req, env, params }) => {
     const r = await requireAdmin(env, req);
     if (r.err) return r.err;
     const { key, user } = await findUserById(env, params.uid);

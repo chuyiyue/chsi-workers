@@ -11,7 +11,7 @@ import { clientIp, rateLimit } from "../middleware/rateLimit.js";
 const RESERVED = "admin";
 
 export function registerAuthRoutes(router) {
-  router.add("POST", "/api/v1/register", async ({ req, env }) => {
+  router.add("POST", "/api/register", async ({ req, env }) => {
     const ip = clientIp(req);
     if (!(await rateLimit(env, "register", ip, 5))) {
       return err(429, ERROR_CODES.RATE_LIMITED, "注册过于频繁，请稍后再试");
@@ -38,7 +38,7 @@ export function registerAuthRoutes(router) {
     return ok({ user: pickUser(user) }, sessionHeaders(token));
   });
 
-  router.add("POST", "/api/v1/login", async ({ req, env }) => {
+  router.add("POST", "/api/login", async ({ req, env }) => {
     const ip = clientIp(req);
     if (!(await rateLimit(env, "login", ip, 10))) {
       return err(429, ERROR_CODES.RATE_LIMITED, "登录尝试过于频繁，请稍后再试");
@@ -73,18 +73,18 @@ export function registerAuthRoutes(router) {
     return ok({ user: pickUser(stored) }, sessionHeaders(token));
   });
 
-  router.add("POST", "/api/v1/logout", async ({ req, env }) => {
+  router.add("POST", "/api/logout", async ({ req, env }) => {
     await destroySession(env, req);
     return ok({}, sessionHeaders(""));
   });
 
-  router.add("GET", "/api/v1/me", async ({ req, env }) => {
+  router.add("GET", "/api/me", async ({ req, env }) => {
     const s = await getSessionUser(env, req);
     if (!s) return err(401, ERROR_CODES.UNAUTHORIZED, "未登录");
     return ok({ user: { username: s.username, role: s.role, orgId: s.orgId || "demo" } });
   });
 
-  router.add("POST", "/api/v1/change-password", async ({ req, env }) => {
+  router.add("POST", "/api/change-password", async ({ req, env }) => {
     const s = await getSessionUser(env, req);
     if (!s) return err(401, ERROR_CODES.UNAUTHORIZED, "未登录");
     if (s.role === "admin") {

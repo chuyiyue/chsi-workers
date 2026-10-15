@@ -1,3 +1,51 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><title>学籍档案（演示）</title></head>
-<body><p>web 占位页 — M4 重建</p></body></html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>学籍档案（演示）</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="wrap has-tabbar">
+  <div class="app-header">
+    <a class="back" href="#query">‹</a>
+    <span id="inst-name">学员学籍信息平台</span>
+    <span class="demo-tag" id="demo-tag">演示</span>
+  </div>
+
+  <main id="view" class="view"></main>
+
+  <nav class="tabbar">
+    <button class="active" id="tab-query">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+      学籍查询</button>
+    <button id="tab-me">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      我的</button>
+    <button id="tab-help">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg>
+      帮助</button>
+  </nav>
+</div>
+
+<footer id="demo-footer" class="foot-disclaimer">演示系统 · 与中国高等教育学生信息网（学信网）无任何关联</footer>
+
+<script type="module" src="/js/main.js"></script>
+<script type="module">
+  // 底栏导航与路由联动
+  const tabIds = { "tab-query": "#query", "tab-me": "#me", "tab-help": "#help" };
+  function sync() {
+    const h = location.hash || "#query";
+    for (const [id, target] of Object.entries(tabIds)) {
+      document.getElementById(id)?.classList.toggle("active", h.startsWith(target));
+    }
+  }
+  window.addEventListener("hashchange", sync);
+  sync();
+  document.getElementById("tab-query")?.addEventListener("click", () => location.hash = "#query");
+  document.getElementById("tab-me")?.addEventListener("click", () => location.hash = "#me");
+  document.getElementById("tab-help")?.addEventListener("click", () => location.hash = "#help");
+</script>
+</body>
+</html>

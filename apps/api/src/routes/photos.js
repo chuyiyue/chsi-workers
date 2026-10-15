@@ -1,11 +1,11 @@
-/** 照片读取路由：GET /api/v1/photos/:sid/:n —— key 形如 photos/<sid>/<n>.bin */
+/** 照片读取路由：GET /api/photos/:sid/:n —— key 形如 photos/<sid>/<n>.bin */
 import { err, SECURITY_HEADERS } from "../core/http.js";
 import { loadPhoto } from "../core/photoStore.js";
 import { requireUser } from "../core/session.js";
 import { R2 } from "@chsi/shared";
 
 export function registerPhotoRoutes(router) {
-  router.add("GET", "/api/v1/photos/:sid/:n", async ({ req, env, params }) => {
+  router.add("GET", "/api/photos/:sid/:n", async ({ req, env, params }) => {
     const r = await requireUser(env, req);
     if (r.err) return r.err;
     if (!/^[0-9a-f]{24}$/.test(params.sid) || !/^photo2?\.bin$/.test(params.n)) {

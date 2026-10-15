@@ -3,7 +3,7 @@
 export function createRouter() {
   const routes = [];
   return {
-    /** add("GET", "/api/v1/students/:sid", handler) */
+    /** add("GET", "/api/students/:sid", handler) */
     add(method, pattern, handler) {
       const names = [];
       const regex = new RegExp(
