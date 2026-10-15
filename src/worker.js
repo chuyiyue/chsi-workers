@@ -141,9 +141,16 @@ function validateStudent(b) {
     errs.push("证件号码格式不正确");
   }
   if (b.gender && !["男", "女"].includes(b.gender)) errs.push("性别只能为男/女");
-  if (b.photo && b.photo.length > 400 * 1024) errs.push("照片过大（请控制在 300KB 以内）");
-  if (b.photo2 && b.photo2.length > 400 * 1024) errs.push("学历照片过大（请控制在 300KB 以内）");
   return { errs, name, idNumber };
+}
+
+/* 照片：允许 data:image（存 KV）或 http(s) 外链 */
+function cleanPhoto(v) {
+  if (typeof v !== "string") return "";
+  v = v.trim();
+  if (v.startsWith("data:image/")) return v.slice(0, 25 * 1024 * 1024); // KV 单值上限 25MB
+  if (/^https?:\/\//i.test(v)) return v.slice(0, 2000);
+  return "";
 }
 
 function sanitizeStudent(b, idNumber, name) {
@@ -173,8 +180,8 @@ function sanitizeStudent(b, idNumber, name) {
     gradType: pick(b.gradType, 10),
     presidentName: pick(b.presidentName, 20),
     certNo: pick(b.certNo, 40),
-    photo2: typeof b.photo2 === "string" ? b.photo2.slice(0, 400000) : "",
-    photo: typeof b.photo === "string" && b.photo.startsWith("data:image/") ? b.photo.slice(0, 400 * 1024) : "",
+    photo2: cleanPhoto(b.photo2),
+    photo: cleanPhoto(b.photo),
     published: b.published !== false,
     remark: pick(b.remark, 200),
   };

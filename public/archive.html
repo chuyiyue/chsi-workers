@@ -103,13 +103,14 @@ function photoBox(src, label) {
 
 function detailHTML(r, kind) {
   const isXueli = kind === "xueli";
+  const showXueliPhoto = r.status !== "在读"; // 在读不展示学历照片
   const row = (k, v) => `<div class="kv-row"><span class="k">${k}</span><span class="v">${esc(v) || "—"}</span></div>`;
   const head = `
     <div class="detail-card ${isXueli ? "xueli" : ""}">
       <div class="photos">
         ${isXueli
           ? photoBox(r.photo2 || r.photo, "学历照片")
-          : photoBox(r.photo, "录取照片") + photoBox(r.photo2, "学历照片")}
+          : photoBox(r.photo, "录取照片") + (showXueliPhoto ? photoBox(r.photo2, "学历照片") : "")}
         <div class="photo-meta">
           <div class="pname">${esc(r.name)}</div>
           <div class="pinfo">${esc(r.gender)}&nbsp;&nbsp;${esc(r.birthdate)}</div>

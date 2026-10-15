@@ -154,24 +154,32 @@ function collectStudentForm(form) {
 }
 
 function photoFieldHTML(key, label, val) {
-  return `<div class="field"><label>${label}（可选，≤300KB）</label>
+  const isUrl = typeof val === "string" && /^https?:\/\//i.test(val);
+  return `<div class="field"><label>${label}（可选）</label>
     <input type="file" data-photo-file="${key}" accept="image/*">
+    <input type="url" data-photo-url="${key}" placeholder="或粘贴图片外链 URL（https://…）" value="${isUrl ? esc(val) : ""}" style="margin-top:8px">
     <input type="hidden" name="${key}" value="${esc(val || "")}">
-    <div style="margin-top:6px;font-size:12px;color:#888" data-photo-tip="${key}">${val ? "已上传（重新选择可替换）" : ""}</div></div>`;
+    <div style="margin-top:6px;font-size:12px;color:#888" data-photo-tip="${key}">${val ? "已上传（重新选择或改填外链可替换）" : "可上传图片存入 KV，或直接填写图片外链"}</div></div>`;
 }
 
 function bindPhotoInput(form) {
   form.querySelectorAll('input[data-photo-file]').forEach((input) => {
     const key = input.dataset.photoFile;
     const hidden = form.querySelector(`input[name="${key}"]`);
+    const urlIn = form.querySelector(`input[data-photo-url="${key}"]`);
     const tip = form.querySelector(`[data-photo-tip="${key}"]`);
     input.addEventListener("change", () => {
       const f = input.files[0];
       if (!f) return;
-      if (f.size > 300 * 1024) { tip.textContent = "照片超过 300KB，请压缩后重试"; input.value = ""; return; }
       const rd = new FileReader();
-      rd.onload = () => { hidden.value = rd.result; tip.textContent = "已选择：" + f.name; };
+      rd.onload = () => { hidden.value = rd.result; if (urlIn) urlIn.value = ""; tip.textContent = "已选择本地图片：" + f.name + "（存入 KV）"; };
       rd.readAsDataURL(f);
+    });
+    if (urlIn) urlIn.addEventListener("change", () => {
+      const u = urlIn.value.trim();
+      if (u && !/^https?:\/\//i.test(u)) { tip.textContent = "外链需以 http:// 或 https:// 开头"; return; }
+      hidden.value = u; input.value = "";
+      tip.textContent = u ? "已使用图片外链" : "";
     });
   });
 }
