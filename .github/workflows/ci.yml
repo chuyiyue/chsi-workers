@@ -28,7 +28,7 @@ jobs:
         run: pnpm lint
 
       - name: Test
-        run: pnpm --filter @chsi/api test
+        run: rm -rf apps/api/.wrangler/test-state && pnpm --filter @chsi/api test
 
       - name: Build check
         run: node --check apps/api/src/index.js && test -f apps/web/public/index.html && test -f apps/admin/public/index.html
