@@ -1,0 +1,13 @@
+{
+  "name": "training-admin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8788",
+    "deploy": "wrangler deploy",
+    "check": "node --check src/index.js && node --check src/schema.js && node --check src/lib/store.js && node --check src/lib/crypto.js && node --check src/lib/http.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

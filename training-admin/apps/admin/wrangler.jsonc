@@ -1,0 +1,30 @@
+{
+  "name": "training-admin",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+
+  // 静态前端：web/admin/* 会以 /admin/* 提供。Worker 先接管请求，/api/* 自己处理，其余转给 ASSETS。
+  "assets": {
+    "directory": "./web",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+
+  // 业务数据 + 会话。部署前执行：npx wrangler kv namespace create KV，把 id 填进来。
+  "kv_namespaces": [{ "binding": "KV", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }],
+
+  // 登录限流（原子计数）。本地不支持时代码会退回到 KV 计数。
+  "ratelimits": [
+    {
+      "name": "LOGIN_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 8, "period": 60 }
+    }
+  ],
+
+  "vars": { "SITE_NAME": "培训管理后台" }
+
+  // 需要的 secrets（wrangler secret put）：
+  //   ADMIN_PASSWORD   管理员登录密码
+  //   ID_ENC_KEY       32 字节随机数的 base64，用于加密证件号：openssl rand -base64 32
+}
