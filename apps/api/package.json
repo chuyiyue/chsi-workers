@@ -1,0 +1,23 @@
+{
+  "name": "@chsi/api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:prod": "wrangler deploy --env prod",
+    "test": "vitest run",
+    "lint": "node --check src/index.js && node --check src/router.js"
+  },
+  "dependencies": {
+    "@chsi/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.0",
+    "@cloudflare/workers-types": "^4.20251001.0",
+    "vitest": "^3.2.0",
+    "wrangler": "4.151.0"
+  }
+}

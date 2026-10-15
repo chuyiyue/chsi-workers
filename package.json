@@ -1,0 +1,16 @@
+{
+  "name": "chsi-workers",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build",
+    "deploy:staging": "pnpm --filter @chsi/api deploy:staging",
+    "deploy:prod": "pnpm --filter @chsi/api deploy:prod"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.0"
+  }
+}
