@@ -2,100 +2,198 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>学籍档案 - 学员学籍档案</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>高等教育信息 - 学籍档案</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="topbar"><div class="wrap">
-  <span>学员学籍档案（演示系统）</span>
-  <span id="topbar-user"></span>
-</div></div>
-<header class="header"><div class="wrap">
-  <div class="logo-mark">学</div>
-  <div class="site-title"><h1>某某职业技能培训学校</h1><p>学员学籍档案管理平台</p></div>
-  <div class="head-user" id="head-user"></div>
-  <span class="demo-badge">演示系统 · 非官方</span>
-</div></header>
-<div class="archive-banner"><div class="wrap">
-  <h2>学籍档案</h2>
-  <p>学员学籍信息档案 · 演示系统</p>
-</div></div>
+<div class="wrap">
 
-<div class="wrap"><div class="layout">
-  <aside class="sidebar">
-    <div class="menu-title">我的档案</div>
-    <a class="menu-item active" href="#xueji" data-sec="sec-xueji">学籍信息</a>
-    <a class="menu-item" href="#xueli" data-sec="sec-xueli">学历信息</a>
-    <div class="menu-group">其他</div>
-    <a class="menu-item" href="help.html">帮助中心</a>
-    <a class="menu-item" href="#" id="logout-link-2">退出登录</a>
-  </aside>
+  <!-- 列表视图 -->
+  <div id="view-list">
+    <div class="app-header">
+      <a class="back" href="#" id="back-btn">‹</a>
+      <span id="header-title">高等教育信息</span>
+      <span class="demo-tag">演示</span>
+    </div>
 
-  <div class="content">
-    <div class="panel" id="sec-xueji">
-      <h3>学籍信息</h3>
-      <p class="panel-sub">以下为培训机构上报的学籍注册信息，证件号码已脱敏显示</p>
-      <div id="xueji-list"><p class="empty-tip">加载中…</p></div>
+    <div class="promo-banner">
+      <h3>学员档案</h3>
+      <p>学籍 · 学历 · 学位信息一站式查看（演示数据）</p>
     </div>
-    <div class="panel" id="sec-xueli" style="display:none">
-      <h3>学历信息</h3>
-      <p class="panel-sub">已结业学员的学历记录</p>
-      <div id="xueli-list"><p class="empty-tip">加载中…</p></div>
+
+    <div class="section">
+      <div class="section-head">
+        <h3>学籍信息（<span class="count" id="c-xueji">0</span>）</h3>
+        <span class="more">还有学籍没有显示出来？<a href="help.html">尝试绑定</a></span>
+      </div>
+      <div id="xueji-cards"></div>
     </div>
-    <div class="no-print" style="text-align:center">
-      <button class="btn ghost" onclick="window.print()">打印本页</button>
+
+    <div class="section">
+      <div class="section-head">
+        <h3>学历信息（<span class="count" id="c-xueli">0</span>）</h3>
+        <span class="more">还有学历没有显示出来？<a href="help.html">尝试绑定</a></span>
+      </div>
+      <div id="xueli-cards"></div>
     </div>
-    <div class="watermark">以上信息由培训机构录入维护，仅供演示核验 · 本系统与学信网无关</div>
+
+    <div class="section">
+      <div class="section-head">
+        <h3>学位信息</h3>
+        <span class="more">还有学位没有显示出来？<a href="help.html">尝试绑定学位</a></span>
+      </div>
+      <div id="xuewei-box"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h3>考研信息</h3></div>
+      <div class="empty-box">
+        <p class="big">您没有考研信息！</p>
+        <p class="sub">本演示系统暂不提供考研报名和成绩数据。</p>
+      </div>
+    </div>
+
+    <div class="section no-print" style="padding-bottom:6px">
+      <div class="section-head"><h3>账户</h3></div>
+      <div style="display:flex;gap:10px;padding-bottom:8px">
+        <button class="btn ghost" id="logout-btn" style="flex:1">退出登录</button>
+      </div>
+      <p style="text-align:center;color:#bbb;font-size:12px" id="who"></p>
+    </div>
+
+    <div class="footer">
+      <div>Copyright © 2026 某某职业技能培训学校</div>
+      <div class="disclaimer">演示系统 · 与中国高等教育学生信息网（学信网）无任何关联</div>
+    </div>
   </div>
-</div></div>
 
-<footer class="footer"><div class="wrap">
-  <div>Copyright © 2026 某某职业技能培训学校 All Rights Reserved</div>
-  <div class="disclaimer">本系统为演示站点，与中国高等教育学生信息网（学信网）无任何关联。</div>
-</div></footer>
+  <!-- 详情视图 -->
+  <div id="view-detail" style="display:none">
+    <div class="app-header">
+      <a class="back" href="#" id="detail-back">‹</a>
+      <span id="detail-title">学籍信息</span>
+      <span class="demo-tag">演示</span>
+    </div>
+    <div id="detail-body"></div>
+    <div class="footer">
+      <div class="disclaimer">演示系统 · 与中国高等教育学生信息网（学信网）无任何关联</div>
+    </div>
+  </div>
 
+</div>
 <script src="js/app.js"></script>
 <script>
-function switchSec(name) {
-  document.querySelectorAll(".sidebar .menu-item[data-sec]").forEach(a => {
-    a.classList.toggle("active", a.dataset.sec === "sec-" + name);
-  });
-  document.getElementById("sec-xueji").style.display = name === "xueji" ? "" : "none";
-  document.getElementById("sec-xueli").style.display = name === "xueli" ? "" : "none";
-}
-document.querySelectorAll(".sidebar .menu-item[data-sec]").forEach(a => {
-  a.addEventListener("click", (e) => { e.preventDefault(); switchSec(a.dataset.sec.replace("sec-", "")); history.replaceState(null, "", "#" + a.dataset.sec.replace("sec-", "")); });
-});
+let cache = [];
 
-function recordCard(r) {
-  return `<div class="record-head">
-      ${r.photo ? `<img class="record-photo" src="${r.photo}" alt="证件照片">` : `<div class="record-photo"></div>`}
-      <div><h3 style="margin-bottom:4px">${esc(r.name)}</h3>
-      <p style="color:#888;font-size:13px">${esc(r.institution)} · ${esc(r.major)} · <span class="status-pill">${esc(r.status)}</span></p></div>
-    </div>` + recordTable(r, true);
+function cardHTML(r, kind) {
+  return `<div class="rec-card ${kind}" data-sid="${r.sid}">
+    <div class="row1"><span class="school">${esc(r.institution || "—")}</span><span class="pill">${esc(r.level || "—")}</span></div>
+    <div class="row2">${esc(r.major || "—")}<span class="sep">|</span>${esc(r.studyMode || r.duration || "—")}</div>
+  </div>`;
+}
+
+function statusText(s) {
+  return { "在读": "在籍", "已结业": "不在籍（毕业）", "休学": "休学", "退学": "退学" }[s] || s || "—";
+}
+
+function photoBox(src, label) {
+  return `<div class="photo-item">${src ? `<img src="${src}" alt="">` : `<div class="photo-empty"></div>`}<p>${label}</p></div>`;
+}
+
+function detailHTML(r, kind) {
+  const isXueli = kind === "xueli";
+  const row = (k, v) => `<div class="kv-row"><span class="k">${k}</span><span class="v">${esc(v) || "—"}</span></div>`;
+  const head = `
+    <div class="detail-card ${isXueli ? "xueli" : ""}">
+      <div class="photos">
+        ${isXueli
+          ? photoBox(r.photo2 || r.photo, "学历照片")
+          : photoBox(r.photo, "录取照片") + photoBox(r.photo2, "学历照片")}
+        <div class="photo-meta">
+          <div class="pname">${esc(r.name)}</div>
+          <div class="pinfo">${esc(r.gender)}&nbsp;&nbsp;${esc(r.birthdate)}</div>
+        </div>
+      </div>
+      <div class="row1"><span class="school">${esc(r.institution || "—")}</span><span class="pill">${esc(r.level || "—")}</span></div>
+      <div class="row2">${esc(r.major || "—")}<span class="sep">|</span>${esc(r.studyMode || "—")}</div>
+    </div>`;
+  const rows = isXueli
+    ? row("入学日期", r.enrollDate) + row("毕（结）业日期", r.gradDate)
+      + row("学历类别", r.eduCategory) + row("学制", r.duration)
+      + row("毕（结）业", r.gradType) + row("校（院）长姓名", r.presidentName)
+      + row("证书编号", r.certNo)
+    : row("民族", r.ethnicity) + row("证件号码", maskId(r.idNumber))
+      + row("学制", r.duration) + row("学历类别", r.eduCategory)
+      + row("分院", r.branch) + row("系所", r.dept) + row("班级", r.className)
+      + row("学号", r.studentNo) + row("入学日期", r.enrollDate)
+      + row("学籍状态", statusText(r.status))
+      + row(r.status === "已结业" ? "离校日期" : "预计结业日期", r.gradDate);
+  const banner = isXueli ? "" : `<div class="promo-banner"><h3>学员服务</h3><p>学籍档案自助服务（演示）</p></div>`;
+  return banner + head + `<div class="kv-list">${rows}</div>
+    <a class="report-btn" href="#" id="report-btn">查看验证报告</a>`;
+}
+
+function showDetail(sid, kind) {
+  const r = cache.find(x => x.sid === sid);
+  if (!r) return;
+  document.getElementById("detail-title").textContent = kind === "xueli" ? "高等学历" : "高等学籍";
+  document.getElementById("detail-body").innerHTML = detailHTML(r, kind);
+  document.getElementById("report-btn").addEventListener("click", (e) => {
+    e.preventDefault();
+    alert("演示系统暂不提供在线验证报告");
+  });
+  document.getElementById("view-list").style.display = "none";
+  document.getElementById("view-detail").style.display = "";
+  window.scrollTo(0, 0);
+}
+function showList() {
+  document.getElementById("view-detail").style.display = "none";
+  document.getElementById("view-list").style.display = "";
+  window.scrollTo(0, 0);
 }
 
 (async function init() {
   const u = await guard();
   if (!u) return;
   if (u.role === "admin") { location.href = "admin.html"; return; }
-  await renderUserHeader(u);
+  document.getElementById("who").textContent = "当前用户：" + u.username;
+  document.getElementById("back-btn").addEventListener("click", (e) => { e.preventDefault(); history.length > 1 ? history.back() : (location.href = "index.html"); });
+  document.getElementById("detail-back").addEventListener("click", (e) => { e.preventDefault(); showList(); });
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    await api("/api/logout", { method: "POST" }).catch(() => {});
+    location.href = "index.html";
+  });
+
   const d = await api("/api/students").catch(() => ({ students: [] }));
-  const recs = d.students || [];
-  const xuejiEl = document.getElementById("xueji-list");
-  const xueliEl = document.getElementById("xueli-list");
-  if (!recs.length) {
-    xuejiEl.innerHTML = `<p class="empty-tip">暂无学籍信息，请联系培训机构管理员录入。</p>`;
-  } else {
-    xuejiEl.innerHTML = recs.map(recordCard).join("");
-  }
-  const grad = recs.filter(r => r.status === "已结业");
-  xueliEl.innerHTML = grad.length
-    ? grad.map(recordCard).join("")
-    : `<p class="empty-tip">暂无学历信息。</p>`;
-  const h = (location.hash || "#xueji").replace("#", "");
-  switchSec(h === "xueli" ? "xueli" : "xueji");
+  cache = d.students || [];
+  document.getElementById("c-xueji").textContent = cache.length;
+  document.getElementById("xueji-cards").innerHTML = cache.length
+    ? cache.map(r => cardHTML(r, "xueji")).join("")
+    : `<div class="empty-box"><p class="sub">暂无学籍信息，请联系管理员录入。</p></div>`;
+
+  const grad = cache.filter(r => r.status === "已结业");
+  document.getElementById("c-xueli").textContent = grad.length;
+  document.getElementById("xueli-cards").innerHTML = grad.length
+    ? grad.map(r => cardHTML(r, "xueli")).join("")
+    : `<div class="empty-box"><p class="sub">暂无学历信息。</p></div>`;
+
+  const deg = cache.filter(r => r.degreeName);
+  document.getElementById("xuewei-box").innerHTML = deg.length
+    ? deg.map(r => `<div class="rec-card xueji" data-sid="${r.sid}">
+        <div class="row1"><span class="school">${esc(r.degreeName)}</span><span class="pill">学位</span></div>
+        <div class="row2">${esc(r.degreeUnit || "—")}</div></div>`).join("")
+    : `<div class="empty-box"><p class="big">您还未绑定学位信息</p>
+       <p class="sub">可以使用"尝试绑定学位"功能绑定您的学位（演示系统暂不支持在线绑定）。</p></div>
+       <div class="note-list">
+        <div class="note-item"><span class="num">1</span><span>本演示系统中的学位数据由培训机构自行录入，仅供功能演示。</span></div>
+        <div class="note-item"><span class="num">2</span><span>请确保注册账号的"姓名"与"证件号码"无误，以便匹配您的学位信息。</span></div>
+        <div class="note-item"><span class="num">3</span><span>如学位信息有误，请联系培训机构管理员核实修改。</span></div>
+       </div>`;
+
+  document.querySelectorAll(".rec-card").forEach(c => c.addEventListener("click", () => {
+    showDetail(c.dataset.sid, c.classList.contains("xueli") ? "xueli" : "xueji");
+  }));
 })();
 </script>
 </body>

@@ -2,41 +2,33 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>用户登录 - 学籍档案</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="login-page">
-<div class="topbar"><div class="wrap">
-  <span>学员学籍档案（演示系统）</span>
-  <span><a href="register.html">注册</a></span>
-</div></div>
-<header class="header"><div class="wrap">
-  <div class="logo-mark">学</div>
-  <div class="site-title"><h1>某某职业技能培训学校</h1><p>学员学籍档案管理平台</p></div>
-  <span class="demo-badge">演示系统 · 非官方</span>
-</div></header>
-
-<div class="login-main"><div class="wrap" style="display:flex;justify-content:center">
-  <div class="login-card">
-    <h2>学籍档案登录</h2>
-    <p class="login-sub">登录后查看本人的学籍 / 学历档案信息</p>
+<body>
+<div class="wrap">
+  <div class="app-header"><span>用户登录</span><span class="demo-tag">演示</span></div>
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="mark">学</div>
+      <h2>学籍档案</h2>
+      <p>某某职业技能培训学校 · 演示系统</p>
+    </div>
     <form id="login-form">
       <div class="field"><label>用户名</label><input name="username" placeholder="请输入用户名" autocomplete="username"></div>
       <div class="field"><label>密码</label><input name="password" type="password" placeholder="请输入密码" autocomplete="current-password"></div>
       <div class="form-msg" id="lmsg"></div>
       <button class="btn" type="submit">登 录</button>
     </form>
-    <div class="login-links">还没有账号？<a href="register.html">立即注册</a><br>
-      <span style="color:#aaa;font-size:12px">管理员请使用 admin 账号登录</span></div>
+    <div class="login-links"><a href="register.html">立即注册</a><span style="color:#ddd">|</span><a href="help.html">帮助中心</a></div>
+    <p style="text-align:center;color:#bbb;font-size:12px;margin-top:14px">管理员请使用 admin 账号登录</p>
   </div>
-</div></div>
-
-<footer class="footer"><div class="wrap">
-  <div>Copyright © 2026 某某职业技能培训学校 All Rights Reserved</div>
-  <div class="disclaimer">本系统为演示站点，用于培训机构学籍档案功能演示，与中国高等教育学生信息网（学信网）无任何关联。</div>
-</div></footer>
-
+  <div class="footer">
+    <div>Copyright © 2026 某某职业技能培训学校</div>
+    <div class="disclaimer">演示系统 · 与中国高等教育学生信息网（学信网）无任何关联</div>
+  </div>
+</div>
 <script src="js/app.js"></script>
 <script>
 (async function () {
@@ -50,9 +42,9 @@
     showMsg("lmsg", "登录中…", true);
     try {
       const d = await api("/api/login", { method: "POST", body: JSON.stringify(body) });
-      showMsg("lmsg", "登录成功，正在进入档案…", true);
+      showMsg("lmsg", "登录成功，正在进入…", true);
       const next = new URLSearchParams(location.search).get("next");
-      setTimeout(() => { location.href = next || (d.user.role === "admin" ? "admin.html" : "archive.html"); }, 500);
+      setTimeout(() => { location.href = next || (d.user.role === "admin" ? "admin.html" : "archive.html"); }, 400);
     } catch (err) { showMsg("lmsg", err.message); }
   });
 })();

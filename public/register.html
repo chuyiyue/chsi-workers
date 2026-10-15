@@ -2,25 +2,19 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>用户注册 - 学籍档案</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="login-page">
-<div class="topbar"><div class="wrap">
-  <span>学员学籍档案（演示系统）</span>
-  <span><a href="index.html">登录</a></span>
-</div></div>
-<header class="header"><div class="wrap">
-  <div class="logo-mark">学</div>
-  <div class="site-title"><h1>某某职业技能培训学校</h1><p>学员学籍档案管理平台</p></div>
-  <span class="demo-badge">演示系统 · 非官方</span>
-</div></header>
-
-<div class="login-main"><div class="wrap" style="display:flex;justify-content:center">
-  <div class="login-card">
-    <h2>用户注册</h2>
-    <p class="login-sub">注册后可查看本人学籍档案（由管理员录入）</p>
+<body>
+<div class="wrap">
+  <div class="app-header"><a class="back" href="index.html">‹</a><span>用户注册</span><span class="demo-tag">演示</span></div>
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="mark">学</div>
+      <h2>注册账号</h2>
+      <p>注册后可查看本人学籍档案（由管理员录入）</p>
+    </div>
     <form id="reg-form">
       <div class="field"><label>用户名 <span class="req">*</span></label><input name="username" placeholder="3~20 位字母、数字或下划线" autocomplete="username"></div>
       <div class="field"><label>密码 <span class="req">*</span></label><input name="password" type="password" placeholder="6~64 位" autocomplete="new-password"></div>
@@ -30,13 +24,10 @@
     </form>
     <div class="login-links">已有账号？<a href="index.html">直接登录</a></div>
   </div>
-</div></div>
-
-<footer class="footer"><div class="wrap">
-  <div>Copyright © 2026 某某职业技能培训学校 All Rights Reserved</div>
-  <div class="disclaimer">本系统为演示站点，与中国高等教育学生信息网（学信网）无任何关联。</div>
-</div></footer>
-
+  <div class="footer">
+    <div class="disclaimer">演示系统 · 与中国高等教育学生信息网（学信网）无任何关联</div>
+  </div>
+</div>
 <script src="js/app.js"></script>
 <script>
 document.getElementById("reg-form").addEventListener("submit", async (e) => {
@@ -50,8 +41,8 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   showMsg("rmsg", "注册中…", true);
   try {
     await api("/api/register", { method: "POST", body: JSON.stringify({ username, password: p1 }) });
-    showMsg("rmsg", "注册成功，正在进入档案…", true);
-    setTimeout(() => location.href = "archive.html", 800);
+    showMsg("rmsg", "注册成功，正在进入…", true);
+    setTimeout(() => location.href = "archive.html", 600);
   } catch (err) { showMsg("rmsg", err.message); }
 });
 </script>

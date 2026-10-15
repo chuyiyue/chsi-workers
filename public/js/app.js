@@ -108,8 +108,13 @@ const STUDENT_FIELDS = [
   ["idType", "证件类型", "text", 0], ["idNumber", "证件号码", "text", 1],
   ["studentNo", "学号", "text", 0], ["level", "培训层次", "text", 0],
   ["major", "专业/课程", "text", 0], ["duration", "学制", "text", 0],
-  ["enrollDate", "入学日期", "text", 0], ["gradDate", "预计结业日期", "text", 0],
+  ["studyMode", "学习形式", "text", 0], ["eduCategory", "学历类别", "text", 0],
+  ["branch", "分院", "text", 0], ["dept", "系所", "text", 0], ["className", "班级", "text", 0],
+  ["enrollDate", "入学日期", "text", 0], ["gradDate", "毕（结）业日期", "text", 0],
+  ["gradType", "毕（结）业", "select:;毕业;结业", 0],
+  ["presidentName", "校（院）长姓名", "text", 0], ["certNo", "证书编号", "text", 0],
   ["status", "学籍状态", "select:在读;已结业;休学;退学", 0],
+  ["degreeName", "学位名称", "text", 0], ["degreeUnit", "学位授予单位", "text", 0],
   ["institution", "培训机构", "text", 0],
 ];
 
@@ -128,10 +133,8 @@ function studentFormHTML(values = {}) {
     }
   }
   h += `<div class="field"><label>备注</label><input name="remark" value="${esc(values.remark || "")}"></div>`;
-  h += `<div class="field"><label>证件照片（可选，≤300KB，将存入 KV）</label>
-        <input type="file" name="photoFile" accept="image/*">
-        <input type="hidden" name="photo" value="${esc(values.photo || "")}">
-        <div style="margin-top:6px;font-size:12px;color:#888" id="photo-tip">${values.photo ? "已上传照片（重新选择可替换）" : ""}</div></div>`;
+  h += photoFieldHTML("photo", "录取照片", values.photo);
+  h += photoFieldHTML("photo2", "学历照片", values.photo2);
   h += `<div class="field"><label>是否公开可查</label><select name="published">
         <option value="1" ${values.published !== false ? "selected" : ""}>是</option>
         <option value="0" ${values.published === false ? "selected" : ""}>否</option>
@@ -150,17 +153,25 @@ function collectStudentForm(form) {
   return o;
 }
 
+function photoFieldHTML(key, label, val) {
+  return `<div class="field"><label>${label}（可选，≤300KB）</label>
+    <input type="file" data-photo-file="${key}" accept="image/*">
+    <input type="hidden" name="${key}" value="${esc(val || "")}">
+    <div style="margin-top:6px;font-size:12px;color:#888" data-photo-tip="${key}">${val ? "已上传（重新选择可替换）" : ""}</div></div>`;
+}
+
 function bindPhotoInput(form) {
-  const input = form.querySelector('input[name="photoFile"]');
-  const hidden = form.querySelector('input[name="photo"]');
-  const tip = form.querySelector("#photo-tip");
-  if (!input) return;
-  input.addEventListener("change", () => {
-    const f = input.files[0];
-    if (!f) return;
-    if (f.size > 300 * 1024) { tip.textContent = "照片超过 300KB，请压缩后重试"; input.value = ""; return; }
-    const rd = new FileReader();
-    rd.onload = () => { hidden.value = rd.result; tip.textContent = "已选择照片：" + f.name; };
-    rd.readAsDataURL(f);
+  form.querySelectorAll('input[data-photo-file]').forEach((input) => {
+    const key = input.dataset.photoFile;
+    const hidden = form.querySelector(`input[name="${key}"]`);
+    const tip = form.querySelector(`[data-photo-tip="${key}"]`);
+    input.addEventListener("change", () => {
+      const f = input.files[0];
+      if (!f) return;
+      if (f.size > 300 * 1024) { tip.textContent = "照片超过 300KB，请压缩后重试"; input.value = ""; return; }
+      const rd = new FileReader();
+      rd.onload = () => { hidden.value = rd.result; tip.textContent = "已选择：" + f.name; };
+      rd.readAsDataURL(f);
+    });
   });
 }

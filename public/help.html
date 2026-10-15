@@ -2,54 +2,26 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>帮助中心 - 学籍档案</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="topbar"><div class="wrap">
-  <span>学员学籍档案（演示系统）</span>
-  <span id="topbar-user"></span>
-</div></div>
-<header class="header"><div class="wrap">
-  <div class="logo-mark">学</div>
-  <div class="site-title"><h1>某某职业技能培训学校</h1><p>学员学籍档案管理平台</p></div>
-  <div class="head-user" id="head-user"></div>
-  <span class="demo-badge">演示系统 · 非官方</span>
-</div></header>
-<div class="archive-banner"><div class="wrap">
-  <h2>帮助中心</h2>
-  <p>常见问题 · 演示系统</p>
-</div></div>
-
-<div class="wrap"><div class="layout">
-  <aside class="sidebar">
-    <div class="menu-title">导航</div>
-    <a class="menu-item" href="archive.html">我的档案</a>
-    <a class="menu-item active" href="help.html">帮助中心</a>
-    <a class="menu-item" href="#" id="logout-link-2">退出登录</a>
-  </aside>
-  <div class="content"><div class="panel">
-    <h3>常见问题</h3>
-    <p class="panel-sub">关于本演示系统的说明</p>
-    <p><b>1. 这是学信网吗？</b><br>不是。本系统为培训机构学籍档案功能演示站，界面布局参考学信档案风格，与中国高等教育学生信息网（学信网）无任何关联，数据均为演示录入。</p>
-    <p><b>2. 如何查看我的档案？</b><br>注册并登录后，进入「我的档案」即可查看名下的学籍信息与学历信息。档案内容由管理员录入，本人不可修改。</p>
-    <p><b>3. 学历信息是什么？</b><br>学籍状态为「已结业」的记录会同步显示在学历信息中，模拟真实档案中学籍与学历的关系。</p>
-    <p><b>4. 管理员能做什么？</b><br>管理员（admin）可查看全站用户与学籍、为指定用户代录学籍、删除用户及其数据。</p>
-    <p><b>5. 数据存在哪里？</b><br>全部数据存储在 Cloudflare KV 中，包括证件照片（以字节形式存入，单张限制 300KB）。</p>
-  </div></div>
-</div></div>
-
-<footer class="footer"><div class="wrap">
-  <div>Copyright © 2026 某某职业技能培训学校 All Rights Reserved</div>
-  <div class="disclaimer">本系统为演示站点，与中国高等教育学生信息网（学信网）无任何关联。</div>
-</div></footer>
-<script src="js/app.js"></script>
-<script>
-(async function () {
-  const u = await currentUser();
-  await renderUserHeader(u);
-})();
-</script>
+<div class="wrap">
+  <div class="app-header"><a class="back" href="archive.html">‹</a><span>帮助中心</span><span class="demo-tag">演示</span></div>
+  <div class="section">
+    <div class="section-head"><h3>常见问题</h3></div>
+    <div class="note-list">
+      <div class="note-item"><span class="num">1</span><span><b>这是学信网吗？</b><br>不是。本系统为培训机构学籍档案功能演示站，界面参考学信档案移动端风格，与中国高等教育学生信息网（学信网）无任何关联，数据均为演示录入。</span></div>
+      <div class="note-item"><span class="num">2</span><span><b>如何查看我的档案？</b><br>注册并登录后即进入"高等教育信息"页，可查看名下的学籍、学历、学位信息。档案内容由管理员录入，本人不可修改。</span></div>
+      <div class="note-item"><span class="num">3</span><span><b>学历信息是什么？</b><br>学籍状态为"已结业"的记录会同步显示在学历信息中。</span></div>
+      <div class="note-item"><span class="num">4</span><span><b>管理员能做什么？</b><br>管理员（admin）可查看全站用户与学籍、为指定用户代录学籍、删除用户及其数据。</span></div>
+      <div class="note-item"><span class="num">5</span><span><b>数据存在哪里？</b><br>全部数据存储在 Cloudflare KV 中，包括证件照片（以字节形式存入，单张限制 300KB）。</span></div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="disclaimer">演示系统 · 与中国高等教育学生信息网（学信网）无任何关联</div>
+  </div>
+</div>
 </body>
 </html>

@@ -142,6 +142,7 @@ function validateStudent(b) {
   }
   if (b.gender && !["男", "女"].includes(b.gender)) errs.push("性别只能为男/女");
   if (b.photo && b.photo.length > 400 * 1024) errs.push("照片过大（请控制在 300KB 以内）");
+  if (b.photo2 && b.photo2.length > 400 * 1024) errs.push("学历照片过大（请控制在 300KB 以内）");
   return { errs, name, idNumber };
 }
 
@@ -159,9 +160,20 @@ function sanitizeStudent(b, idNumber, name) {
     level: pick(b.level, 30),
     major: pick(b.major, 60),
     duration: pick(b.duration, 20),
+    studyMode: pick(b.studyMode, 20),
+    eduCategory: pick(b.eduCategory, 20),
+    branch: pick(b.branch, 40),
+    dept: pick(b.dept, 40),
+    className: pick(b.className, 40),
     enrollDate: pick(b.enrollDate, 20),
     gradDate: pick(b.gradDate, 20),
     status: pick(b.status, 20) || "在读",
+    degreeName: pick(b.degreeName, 30),
+    degreeUnit: pick(b.degreeUnit, 60),
+    gradType: pick(b.gradType, 10),
+    presidentName: pick(b.presidentName, 20),
+    certNo: pick(b.certNo, 40),
+    photo2: typeof b.photo2 === "string" ? b.photo2.slice(0, 400000) : "",
     photo: typeof b.photo === "string" && b.photo.startsWith("data:image/") ? b.photo.slice(0, 400 * 1024) : "",
     published: b.published !== false,
     remark: pick(b.remark, 200),
