@@ -322,12 +322,15 @@ async function handleApi(env, req, url) {
     const b = await req.json().catch(() => ({}));
     const { errs, name, idNumber } = validateStudent(b);
     if (errs.length) return json({ ok: false, error: errs[0] }, 400);
-    // 管理员可代指定用户建档
-    let ownerId = r.user.userId, ownerUsername = r.user.username;
-    if (r.user.role === "admin" && b.ownerUsername) {
+    // 管理员纯管理：必须指定所属用户，不能为自己建档
+    let ownerId, ownerUsername;
+    if (r.user.role === "admin") {
+      if (!b.ownerUsername) return json({ ok: false, error: "请指定学籍所属用户" }, 400);
       const target = await env.KV.get(`user:${b.ownerUsername}`, "json");
       if (!target) return json({ ok: false, error: "指定的归属用户不存在" }, 400);
       ownerId = target.id; ownerUsername = target.username;
+    } else {
+      ownerId = r.user.userId; ownerUsername = r.user.username;
     }
     const sid = randHex(12);
     const now = new Date().toISOString();

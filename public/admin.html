@@ -417,6 +417,7 @@ $("#set-save").addEventListener("click", async () => {
     setAvatarVal = bindSettingsImage("avatar");
     loadUsers(); loadRecords(); loadSettings();
   }
+  else if (u) location.href = "archive.html"; // 普通用户不看管理页
   else show("login");
 })();
 </script>
