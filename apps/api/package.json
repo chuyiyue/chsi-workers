@@ -4,12 +4,13 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "dev": "wrangler dev --port 8787",
-    "deploy": "wrangler deploy",
-    "deploy:staging": "wrangler deploy --env staging",
-    "deploy:prod": "wrangler deploy --env prod",
+    "dev": "node build.mjs && wrangler dev --port 8787",
+    "deploy": "node build.mjs && wrangler deploy",
+    "deploy:staging": "node build.mjs && wrangler deploy --env staging",
+    "deploy:prod": "node build.mjs && wrangler deploy --env prod",
     "test": "vitest run",
-    "lint": "node --check src/index.js && node --check src/router.js"
+    "lint": "node --check src/index.js && node --check src/router.js && node --check build.mjs",
+    "build": "node build.mjs"
   },
   "dependencies": {
     "@chsi/shared": "workspace:*"

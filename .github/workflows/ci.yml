@@ -39,6 +39,10 @@ jobs:
           node --check apps/api/src/index.js
           test -f apps/web/public/index.html
           test -f apps/admin/public/index.html
+          # 合并静态产物（web 前台 + admin 后台 → apps/api/dist）
+          pnpm --filter @chsi/api build
+          test -f apps/api/dist/index.html
+          test -f apps/api/dist/admin/index.html
           # 部署前先在 CI 校验：每个 env 都真的带上了 KV/R2 绑定
           # （wrangler 的 env 不继承顶层 kv_namespaces / r2_buckets，漏写会静默部署出无绑定 Worker）
           cd apps/api
@@ -67,6 +71,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build assets
+        run: pnpm --filter @chsi/api build
       - name: Deploy staging (KV/R2 指向 staging 资源)
         run: pnpm --filter @chsi/api exec wrangler deploy --env staging
         env:
@@ -92,6 +98,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build assets
+        run: pnpm --filter @chsi/api build
       - name: Deploy production
         run: pnpm --filter @chsi/api exec wrangler deploy --env prod
         env:

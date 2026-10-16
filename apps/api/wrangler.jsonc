@@ -16,7 +16,7 @@
     "VERSION": "local"
   },
   "assets": {
-    "directory": "../web/public"
+    "directory": "./dist"
   },
   "env": {
     "staging": {
