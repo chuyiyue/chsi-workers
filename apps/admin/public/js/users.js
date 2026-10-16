@@ -27,9 +27,9 @@ function renderList(q) {
     <div class="rowline">
       <div><b>${esc(u.username)}</b><div class="meta">注册于 ${esc((u.createdAt || "").replace("T", " ").slice(0, 19))}</div></div>
       <div style="display:flex;gap:8px;align-items:center">
-        <span class="pill">${u.studentCount} 条学籍</span>
+        <span class="pill">${u.studentCount} 条教育经历</span>
         <button class="btn sm secondary" data-pw="${u.id}">重置密码</button>
-        <button class="btn sm secondary" data-add="${u.id}">代录学籍</button>
+        <button class="btn sm secondary" data-add="${u.id}">代录教育经历</button>
         <button class="btn sm danger" data-del="${u.id}">删除</button>
       </div>
     </div>`).join("") : `<p style="text-align:center;color:#999;padding:30px">暂无用户</p>`;
@@ -70,7 +70,7 @@ function pwDialog(uid) {
 
 async function recordDialog(uid) {
   const u = users.find((x) => x.id === uid);
-  crudDialog(`代录学籍 · ${u.username}`, `<form id="dlg-form">${studentFormHTML({ institution: "" })}</form>
+  crudDialog(`代录教育经历 · ${u.username}`, `<form id="dlg-form">${studentFormHTML({ institution: "" })}</form>
     <div class="msg" id="dlg-msg"></div>`, async () => {
     const body = collectStudentForm(document.getElementById("dlg-form"));
     if (!body.name || !body.idNumber) { showMsg("dlg-msg", "姓名和证件号码为必填项"); return false; }

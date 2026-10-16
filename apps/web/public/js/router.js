@@ -1,6 +1,6 @@
-/* hash 路由：#login #register #query #help #me */
+/* hash 路由：#login #edu #me #help（默认 #edu，未登录时各视图自行跳登录） */
 const routes = new Map();
-let fallback = "#query";
+let fallback = "#edu";
 
 export function route(path, view) {
   routes.set(path, view);

@@ -1,39 +1,47 @@
 /**
- * 一次性迁移：v1（旧 KV 结构）→ v2（新模型）
+ * 迁移：v1/v2 旧 KV → v3 自助端模型
  *
- * 迁移内容：
- *   user:<username>          → 保留（补 orgId / tokenVersion / salt 格式不变）
- *   student:<ownerId>:<sid>  → 照片 data URL 拆出到 photo 键或 R2；记录回写 photoKeys
- *   site:settings            → 保留
- *   会话 / 验证码           → 不迁（TTL 自然过期，用户重新登录）
+ * 变更点：
+ *   1. student:* 去掉 published（公开查询已下线），type 按状态/学位重算
+ *   2. 照片仍走 photoKeys（R2 优先、KV 降级）；未拆离的 data URL 拆离
+ *   3. user:* 补 orgId / tokenVersion；缺 salt 的记录报错不静默
+ *   4. 旧的公开查询索引 idx:* 清掉
+ *   5. 会话 session:* / sidx:* 不动（TTL 自然过期，重新登录即可）
  *
- * 用法（在能访问旧 KV 的环境执行，例如 wrangler dev 或 R-console）：
- *   npx wrangler kv key list --binding KV ...  或直接在 Worker 内导入本模块调用 runMigration(env, log)
+ * 用法（在能访问线上 KV 的环境执行）：
+ *   npx wrangler kv key list --binding KV ...  或
+ *   在 Worker 内 import 本模块调用 runMigration(env, log, { dryRun: true }) 先看统计
  */
-import { R2 } from "@chsi/shared";
+import { R2, REC_TYPE, STATUS } from "@chsi/shared";
 
-export async function runMigration(env, log = console.log) {
-  const stats = { users: 0, students: 0, photos: 0, skipped: 0, errors: 0 };
+export async function runMigration(env, log = console.log, opts = {}) {
+  const dryRun = opts.dryRun === true;
+  const stats = { users: 0, students: 0, photos: 0, idxDeleted: 0, skipped: 0, errors: 0 };
+
   // ---- users：补 orgId / tokenVersion ----
-  let cursor = undefined;
+  let cursor;
   for (;;) {
     const page = await env.KV.list({ prefix: "user:", cursor });
     for (const k of page.keys) {
-      const u = await env.KV.get(k.name, "json").then?.((x) => x) ?? null;
-      const uu = typeof u === "string" ? JSON.parse(u) : u;
-      if (!uu) continue;
-      let changed = false;
-      if (uu.orgId !== "demo") { uu.orgId = "demo"; changed = true; }
-      if (uu.tokenVersion == null) { uu.tokenVersion = 0; changed = true; }
-      // 旧结构缺失 salt 的（早期 bug）跳过并提示手动处理
-      if (!uu.salt) { stats.errors++; log(`!!! user 无 salt：${k.name}`); continue; }
-      if (changed) { await env.KV.put(k.name, JSON.stringify(uu)); stats.users++; }
+      try {
+        const raw = await env.KV.get(k.name);
+        const uu = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (!uu || typeof uu !== "object") { stats.skipped++; continue; }
+        if (!uu.salt) { stats.errors++; log(`!!! user 无 salt（需人工处理）：${k.name}`); continue; }
+        let changed = false;
+        if (uu.orgId !== "demo") { uu.orgId = "demo"; changed = true; }
+        if (uu.tokenVersion == null) { uu.tokenVersion = 0; changed = true; }
+        if (changed) {
+          if (!dryRun) await env.KV.put(k.name, JSON.stringify(uu));
+          stats.users++;
+        } else stats.skipped++;
+      } catch (e) { stats.errors++; log(`!!! ${k.name}: ${e.message}`); }
     }
     if (page.list_complete || !page.cursor) break;
     cursor = page.cursor;
   }
 
-  // ---- students：照片拆离 ----
+  // ---- students：去 published / 补字段 / 拆照片 ----
   cursor = undefined;
   for (;;) {
     const page = await env.KV.list({ prefix: "student:", cursor });
@@ -41,46 +49,62 @@ export async function runMigration(env, log = console.log) {
       try {
         const raw = await env.KV.get(k.name);
         const rec = typeof raw === "string" ? JSON.parse(raw) : raw;
-        if (!rec || typeof rec !== "object") continue;
-        if (rec.photoKeys) { stats.skipped++; continue; } // 已是新格式
-        const photoKeys = {};
-        for (const n of ["photo", "photo2"]) {
-          const v = rec[n];
-          if (v == null || v === "") continue;
-          if (/^https?:\/\//i.test(v)) {
-            photoKeys[n] = { kind: "url", url: String(v).slice(0, 2000) };
-          } else if (/^data:image\/(png|jpeg|jpg|webp);base64,/i.test(v)) {
-            const [, mime, b64] = v.match(/^data:(image\/(?:png|jpeg|jpg|webp));base64,([A-Za-z0-9+/=]+)$/i) || [];
-            if (!b64) continue;
-            const bytes = base64ToBytes(b64);
-            const key = R2.photo(rec.sid, n);
-            if (env.R2) {
-              await env.R2.put(key, bytes, { httpMetadata: { contentType: mime } });
-              photoKeys[n] = { kind: "stored", key };
+        if (!rec || typeof rec !== "object") { stats.skipped++; continue; }
+        let changed = false;
+        if ("published" in rec) { delete rec.published; changed = true; }
+        if (rec.orgId !== "demo") { rec.orgId = "demo"; changed = true; }
+        const wantType = rec.degreeName ? REC_TYPE.DEGREE
+          : rec.status === STATUS.GRADUATED ? REC_TYPE.XUELI : REC_TYPE.XUEJI;
+        if (rec.type !== wantType) { rec.type = wantType; changed = true; }
+
+        if (!rec.photoKeys) {
+          const photoKeys = {};
+          for (const n of ["photo", "photo2"]) {
+            const v = rec[n];
+            if (v == null || v === "") continue;
+            if (/^https?:\/\//i.test(v)) {
+              photoKeys[n] = { kind: "url", url: String(v).slice(0, 2000) };
             } else {
-              await env.KV.put(`photo:${key}`, bytesToBase64(bytes), { httpMetadata: { contentType: mime } });
+              const m = String(v).match(/^data:(image\/(?:png|jpeg|jpg|webp));base64,([A-Za-z0-9+/=]+)$/i);
+              if (!m) continue;
+              const bytes = base64ToBytes(m[2]);
+              const key = R2.photo(rec.sid, n);
+              if (!dryRun) {
+                if (env.R2) await env.R2.put(key, bytes, { httpMetadata: { contentType: m[1] } });
+                else await env.KV.put(`photo:${key}`, bytesToBase64(bytes), { httpMetadata: { contentType: m[1] } });
+              }
               photoKeys[n] = { kind: "stored", key };
+              stats.photos++;
             }
-            stats.photos++;
-          } else {
-            continue; // 未知格式丢弃
+            delete rec[n];
+            changed = true;
           }
-          delete rec[n];
+          rec.photoKeys = photoKeys; // 即使没照片也写标记，表示已迁
+          changed = true;
         }
-        rec.photoKeys = photoKeys; // 字段已删，即使没有照片也要写入标记表示已迁移
-        rec.orgId = rec.orgId || "demo";
-        rec.type = rec.type || (rec.degreeName ? "degree" : rec.status === "已结业" ? "xueli" : "xueji");
-        await env.KV.put(k.name, JSON.stringify(rec));
-        stats.students++;
-      } catch (e) {
-        stats.errors++;
-        log(`!!! ${k.name}: ${e.message}`);
-      }
+        if (changed) {
+          if (!dryRun) await env.KV.put(k.name, JSON.stringify(rec));
+          stats.students++;
+        } else stats.skipped++;
+      } catch (e) { stats.errors++; log(`!!! ${k.name}: ${e.message}`); }
     }
     if (page.list_complete || !page.cursor) break;
     cursor = page.cursor;
   }
-  log(`迁移完成: ${JSON.stringify(stats)}`);
+
+  // ---- idx:*：公开查询索引已作废 ----
+  cursor = undefined;
+  for (;;) {
+    const page = await env.KV.list({ prefix: "idx:", cursor });
+    for (const k of page.keys) {
+      if (!dryRun) await env.KV.delete(k.name);
+      stats.idxDeleted++;
+    }
+    if (page.list_complete || !page.cursor) break;
+    cursor = page.cursor;
+  }
+
+  log(`迁移${dryRun ? "（dry-run）" : ""}完成: ${JSON.stringify(stats)}`);
   return stats;
 }
 

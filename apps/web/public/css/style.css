@@ -10,6 +10,7 @@
   --text: #222;
   --muted: #999;
   --bg: #f1f3f5;
+  --border: #e5e8ea;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -169,6 +170,10 @@ a { color: var(--green-dark); text-decoration: none; }
 .menu-item:last-child { border-bottom: none; }
 .menu-item:active { background: #f8faf9; }
 .menu-item .arrow { color: #ccc; font-size: 18px; }
+/* 个人中心：联系方式一行右对齐（覆盖 space-between，避免名字短时标签跑中间） */
+.menu-item > span:first-child { margin-right: 12px; }
+.menu-item #go-profile,
+.menu-item .v + .arrow { flex: none; }
 .admin-tabs { display: flex; background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 52px; z-index: 40; }
 .admin-tabs button { flex: 1; border: none; background: none; padding: 13px 0; font-size: 14px; color: #666; border-bottom: 2px solid transparent; cursor: pointer; }
 .admin-tabs button.active { color: var(--green-dark); font-weight: 600; border-bottom-color: var(--green); }
@@ -209,3 +214,27 @@ a { color: var(--green-dark); text-decoration: none; }
   body { background: #fff; }
   .wrap { box-shadow: none; max-width: 100%; }
 }
+
+/* ---------- v4：教育信息 / 个人中心 新增样式（沿用原配色变量） ---------- */
+.group-title { font-size: 13px; font-weight: 600; color: var(--muted); margin: 16px 2px 8px; }
+.group-title:first-of-type { margin-top: 4px; }
+.rec-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; background: #fff; cursor: pointer; }
+.rec-card:active { background: #f7f9f8; }
+.rec-card .row1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.rec-card .row1 .school { font-size: 15px; font-weight: 600; }
+.rec-card .pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); flex: none; }
+.rec-card .row2 { font-size: 13px; color: #444; margin-top: 6px; }
+.rec-card .row3 { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.detail-rows { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; }
+.detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.detail-row:last-child { border-bottom: none; }
+.detail-row .k { color: var(--muted); flex: none; }
+.detail-row .v { text-align: right; word-break: break-all; }
+.cert-box { margin-top: 14px; border: 1px dashed var(--border); border-radius: 10px; padding: 12px 14px; background: #fffdf5; }
+.cert-box .t { font-size: 14px; font-weight: 600; }
+.cert-box .meta { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+.pad-row { display: flex; gap: 10px; margin-top: 14px; }
+.pad-row .btn { flex: 1; }
+.btn.ghost.danger { color: #c0392b; border-color: #e6b8b2; }
+.menu-item .v { margin-left: auto; margin-right: 8px; font-size: 13px; color: var(--muted); }
+.empty-box { border: 1px dashed var(--border); border-radius: 10px; padding: 22px 14px; text-align: center; color: var(--muted); font-size: 13px; background: #fff; }

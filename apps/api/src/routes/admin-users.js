@@ -5,6 +5,7 @@ import { username, password as pwOf, asObject } from "../core/validator.js";
 import { hashPassword, newSalt, randHex } from "../core/password.js";
 import { requireAdmin, invalidateUserSessions } from "../core/session.js";
 import { listAll, getJSON, putJSON } from "../core/kv.js";
+import { deletePhoto } from "../core/photoStore.js";
 
 export function registerAdminUserRoutes(router) {
   router.add("GET", "/api/admin/users", async ({ req, env }) => {
@@ -67,13 +68,13 @@ export function registerAdminUserRoutes(router) {
     if (r.err) return r.err;
     const { key, user } = await findUserById(env, params.uid);
     if (!user) return err(404, ERROR_CODES.NOT_FOUND, "用户不存在");
-    // 删除其学籍（含照片）
+    // 删除其教育经历（含照片，R2 / KV 降级都清）
     const skeys = await listAll(env.KV, KV.studentPrefixFor(user.id));
     for (const k of skeys) {
       const rec = await getJSON(env.KV, k.name);
       if (rec?.photoKeys) {
         for (const n of ["photo", "photo2"]) {
-          if (rec.photoKeys[n]?.key) await env.R2?.delete?.(rec.photoKeys[n].key);
+          if (rec.photoKeys[n]?.key) await deletePhoto(env, rec.photoKeys[n].key);
         }
       }
       await env.KV.delete(k.name);

@@ -1,9 +1,0 @@
-# API 部署专用配置：dist/worker.js 已内联全部静态资源，无需 [assets]
-name = "chsi-workers"
-main = "dist/worker.js"
-compatibility_date = "2026-10-01"
-
-# 部署脚本会自动创建 KV 并回填这里的 id；手动 wrangler deploy 时请先填好
-[[kv_namespaces]]
-binding = "KV"
-id = "FILL_AFTER_CREATE"

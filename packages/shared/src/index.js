@@ -17,9 +17,6 @@ export const REC_TYPE = {
   DEGREE: "degree",
 };
 
-/** 前台展示范围（本期收窄：前台不呈现学历分区，后台可管理） */
-export const WEB_HIDDEN_TYPES = [REC_TYPE.XUELI];
-
 /** 学籍字段 schema：api/web/admin 三端共用
  * [key, label, type, required, maxLen]；type: text|date|select:;a;b */
 export const STUDENT_FIELDS = [
@@ -61,7 +58,6 @@ export const ERROR_CODES = {
   NOT_FOUND: "E_NOT_FOUND",
   CONFLICT: "E_CONFLICT",
   RATE_LIMITED: "E_RATE_LIMITED",
-  CAPTCHA_FAILED: "E_CAPTCHA_FAILED",
   PAYLOAD_TOO_LARGE: "E_PAYLOAD_TOO_LARGE",
   SERVER: "E_SERVER",
 };
@@ -82,12 +78,6 @@ export const SESSION_TTL = 7 * 24 * 3600;
 
 /** 60 秒秒数（限流窗） */
 export const RL_WINDOW = 60;
-
-/** 每分钟查询上限 */
-export const QUERY_RL_LIMIT = 10;
-
-/** 验证码 TTL 5 分钟 */
-export const CAPTCHA_TTL = 300;
 
 /** 用户名格式 */
 export const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/;

@@ -49,7 +49,6 @@ function renderList() {
       <div class="head">
         <b>${esc(r.name)}</b>
         <span class="pill green">${esc(r.status || "在读")}</span>
-        ${r.published ? "" : '<span class="pill">不公开</span>'}
         <span class="owner">归属：${esc(usersIdx[r.ownerId] || r.ownerUsername || r.ownerId)}</span>
         <span style="flex:1"></span>
         <button class="btn sm secondary" data-edit="${r.sid}">编辑</button>
@@ -57,7 +56,7 @@ function renderList() {
       </div>
       <div class="fields-hint">${esc(r.institution || "")} · ${esc(r.major || "")} · 证件号 ${esc(r.idNumber)}
         ${r.certNo ? " · 证书 " + esc(r.certNo) : ""}${r.degreeName ? " · 学位 " + esc(r.degreeName) : ""}</div>
-    </div>`).join("") : `<p style="text-align:center;color:#999;padding:30px">暂无学籍记录</p>`;
+    </div>`).join("") : `<p style="text-align:center;color:#999;padding:30px">暂无教育经历记录</p>`;
   el.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => editDialog(b.dataset.edit)));
   el.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", deleteRecord));
 }
@@ -79,7 +78,7 @@ async function editDialog(sid) {
 
 async function deleteRecord(sid) {
   const rec = records.find((r) => r.sid === sid);
-  if (!confirm(`确定删除「${rec.name}」的这条学籍吗？不可恢复。`)) return;
+  if (!confirm(`确定删除「${rec.name}」的这条教育经历吗？不可恢复。`)) return;
   await api("/api/students/" + sid, { method: "DELETE" });
   renderEl();
 }

@@ -5,7 +5,7 @@
 import { createRouter } from "./router.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerStudentRoutes } from "./routes/students.js";
-import { registerQueryRoutes } from "./routes/query.js";
+import { registerMyRoutes } from "./routes/my.js";
 import { registerAdminUserRoutes } from "./routes/admin-users.js";
 import { registerPhotoRoutes } from "./routes/photos.js";
 import { registerSettingsRoutes } from "./routes/settings.js";
@@ -14,7 +14,8 @@ import { json, err } from "./core/http.js";
 const router = createRouter();
 registerAuthRoutes(router);
 registerStudentRoutes(router);
-registerQueryRoutes(router);
+// 学员自助端：只读写本人记录（方案：公开查询已下线，学员不再有匿名入口）
+registerMyRoutes(router);
 registerAdminUserRoutes(router);
 registerPhotoRoutes(router);
 registerSettingsRoutes(router);

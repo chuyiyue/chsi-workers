@@ -6,32 +6,6 @@ import { randHex } from "../core/password.js";
 import { requireUser } from "../core/session.js";
 import { listAll, getJSON, putJSON } from "../core/kv.js";
 import { parsePhotoInput, savePhoto, deletePhoto } from "../core/photoStore.js";
-import { queryDigest } from "./query.js";
-
-/** 维护 (name,idNumber) → 记录 key 的公开查询索引 */
-async function indexStudent(env, rec) {
-  if (!rec.published) return;
-  const digest = await queryDigest(rec.name, rec.idNumber);
-  const key = KV.student(rec.ownerId, rec.sid);
-  const cur = await getJSON(env.KV, KV.idx(digest)) || { sids: [] };
-  if (!cur.sids.some((x) => x.key === key)) {
-    cur.sids.push({ key });
-    await putJSON(env.KV, KV.idx(digest), cur);
-  }
-}
-
-async function unindexStudent(env, rec) {
-  const digest = await queryDigest(rec.name, rec.idNumber);
-  const key = KV.student(rec.ownerId, rec.sid);
-  const cur = await getJSON(env.KV, KV.idx(digest));
-  if (cur && Array.isArray(cur.sids)) {
-    const next = cur.sids.filter((x) => x.key !== key);
-    if (next.length !== cur.sids.length) {
-      if (next.length === 0) await env.KV.delete(KV.idx(digest));
-      else await putJSON(env.KV, KV.idx(digest), { sids: next });
-    }
-  }
-}
 
 /** 记录类型推导：status==已结业→xueli，degreeName 非空→degree，否则 xueji */
 function deriveType(rec) {
@@ -95,7 +69,6 @@ export function registerStudentRoutes(router) {
       type: REC_TYPE.XUEJI, createdAt: now, updatedAt: now,
       ...out,
       photo: b.photo, photo2: b.photo2, // 先原样带上，save 拆离过程处理
-      published: objectBool(b.published, true),
     };
     // 照片：拆离存储，记录里只存 kind+key/url
     for (const n of ["photo", "photo2"]) {
@@ -108,7 +81,6 @@ export function registerStudentRoutes(router) {
       else if (saved.kind === "r2" || saved.kind === "kv") rec.photoKeys[n] = { kind: "stored", key: saved.key };
     }
     await putJSON(env.KV, KV.student(ownerId, sid), rec);
-    await indexStudent(env, rec);
     return ok({ student: summary(rec) });
   });
 
@@ -154,11 +126,6 @@ export function registerStudentRoutes(router) {
     }
     delete rec.photo; delete rec.photo2;
     await putJSON(env.KV, KV.student(old.ownerId, old.sid), rec);
-    // 索引维护：(name,idNumber) 若变化先拆旧索引，再按新值建
-    const identityChanged = old.name !== rec.name || old.idNumber !== rec.idNumber
-      || !!old.published !== !!rec.published;
-    if (identityChanged) await unindexStudent(env, old);
-    await indexStudent(env, rec);
     return ok({ student: summary(rec) });
   });
 
@@ -172,7 +139,6 @@ export function registerStudentRoutes(router) {
         if (rec.photoKeys[n]?.key) { await deletePhoto(env, rec.photoKeys[n].key); }
       }
     }
-    await unindexStudent(env, rec);
     await env.KV.delete(KV.student(rec.ownerId, rec.sid));
     return ok();
   });
@@ -198,16 +164,10 @@ function pickUpdatable(b) {
   const pick = ["name", "gender", "ethnicity", "birthdate", "idType", "idNumber", "studentNo",
     "level", "major", "duration", "studyMode", "eduCategory", "branch", "dept", "className",
     "enrollDate", "gradDate", "gradType", "presidentName", "certNo", "status",
-    "degreeName", "degreeUnit", "institution", "remark", "published", "photo", "photo2"];
+    "degreeName", "degreeUnit", "institution", "remark", "photo", "photo2"];
   const out = {};
   for (const k of pick) if (k in b) out[k] = b[k];
   return out;
-}
-
-function objectBool(v, fallback) {
-  if (v === false || v === "0" || v === 0) return false;
-  if (v === true || v === "1" || v === 1) return true;
-  return fallback;
 }
 
 async function safeJson(req) {

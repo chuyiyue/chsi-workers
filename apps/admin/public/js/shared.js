@@ -62,10 +62,6 @@ export function studentFormHTML(values = {}) {
     }
   }
   h += `<label class="fl">备注</label><input class="in" name="remark" value="${esc(values.remark || "")}">`;
-  h += `<label class="fl">是否公开可查</label><select class="in" name="published">
-        <option value="1" ${values.published !== false ? "selected" : ""}>是</option>
-        <option value="0" ${values.published === false ? "selected" : ""}>否</option>
-      </select>`;
   return h;
 }
 
@@ -73,6 +69,5 @@ export function collectStudentForm(form) {
   const fd = new FormData(form);
   const o = {};
   for (const [k, v] of fd.entries()) o[k] = typeof v === "string" ? v.trim() : v;
-  o.published = fd.get("published") !== "0";
   return o;
 }
