@@ -1,69 +1,65 @@
-# 学员学籍信息查询与管理平台（演示系统）
+# 学员学籍信息平台（演示系统）
 
-仿学信档案布局风格的培训机构学籍演示站：登录后查看个人学籍/学历档案。
-运行于 Cloudflare Workers，全部数据（含证件照片字节）存于 KV。
+仿学信档案布局风格的培训机构学籍演示站，运行于 Cloudflare Workers。
+**演示系统 · 与中国高等教育学生信息网（学信网）无任何关联。**
 
-> 品牌说明：页面使用占位机构名"某某职业技能培训学校"，部署前请替换为真实机构名
-> （`public/js/app.js` 顶部 `INSTITUTION` 常量、各 HTML 的标题/页脚）。
-> 全站带有"演示系统 · 非官方"标识，与学信网无关。
-
-## 功能
-
-- **学籍档案**（登录后）：手机端仿学信档案——绿色顶栏 + 高等教育信息（学籍/学历/学位/考研分区），学籍=绿色大卡双照片、学历=蓝色大卡单照片，证件号码脱敏；在读不展示学历照片；支持多条学籍/学历同时展示
-- **底栏导航**：教育信息 / 我的；「我的」是个人中心——头像、学籍信息设置（可新增/编辑自己的多条学籍信息）、修改密码、退出登录
-- **用户自助注册/登录**：每个用户只能查看和修改自己名下的档案，数据相互隔离
-- **管理员**（独立入口 `/admin`，简洁后台风格）：用户管理——新增用户、删除用户、修改用户密码；在用户详情内代录/编辑/删除其学籍（含照片上传存 KV 或外链）
-- 会话：KV 存储，HttpOnly Cookie，7 天有效期；密码 SHA-256 加盐哈希
-- `/api/query` 公开查询接口保留在后端，前端无入口
-
-## 目录结构
+## 结构
 
 ```
-src/worker.js          Worker 源码（API + 静态资源 serving）
-public/                前端页面（登录/注册/学籍档案/管理后台/帮助）
-build.mjs              构建脚本：把 public/* 内联为 dist/worker.js
-dist/worker.js         部署包（构建产物）
-wrangler.toml          本地开发配置（[assets] 直连 public/）
-wrangler.deploy.toml   API 部署配置（用 dist 包，无需 [assets]）
+apps/api/    后端 Worker（纯 API + 静态网关）
+  src/core/      kv(cursor 分页) / session / password / validator / photoStore / http
+  src/routes/    auth / students / query / admin-users / photos / settings
+  src/migrations/ 旧 KV → 新模型（照片拆离）一次性迁移
+  build.mjs      合并 web+admin 静态产物到 dist/
+apps/web/    前台（学籍查询 | 我的 | 帮助）
+apps/admin/  后台（用户管理 | 学籍管理 | 网站设置）
+packages/shared/  字段定义、错误码、KV key 约定（三端唯一合同）
 ```
 
 ## 本地开发
 
 ```bash
-npx wrangler dev --port 8787
+pnpm install
+cd apps/api
+echo 'ADMIN_PASSWORD="dev-pw"' > .dev.vars
+pnpm dev          # 先 build 静态产物，再 wrangler dev :8787
 ```
 
-KV 走本地模拟。管理员登录需先设置密码：`echo 'ADMIN_PASSWORD="xxx"' > .dev.vars`（仅本地）。
+`/` 前台，`/admin` 后台，`/api/*` 接口。
 
-## 部署（Muse 自动部署）
-
-Muse 通过 Cloudflare API 部署，无需 wrangler CLI：
+## 测试
 
 ```bash
-node build.mjs
-python3 ~/workspace/custom-connectors/custom.cloudflare/bin/deploy-worker.py \
-  --project ~/workspace/xuexin-demo --admin-password "$ADMIN_PW"
+pnpm --filter @chsi/api test
 ```
 
-脚本自动完成：取 account id → 创建/复用 KV namespace → 上传 Worker（含内联静态资源）→ 写入 ADMIN_PASSWORD secret → 输出访问地址。
+14 个用例：会话生命周期（改密/删号踢会话）、入参类型校验、登录限流、
+1010 条记录分页不截断、照片拆离、公开查询脱敏、迁移脚本。
 
-所需 Cloudflare API Token 权限（dash.cloudflare.com → 我的个人资料 → API 令牌 → 创建令牌，
-使用"编辑 Cloudflare Workers"模板）：Workers 脚本编辑、KV 存储编辑、账户读取。
+## 部署
 
-## 手动部署（wrangler）
+push 到 `main` 由 GitHub Actions 自动部署：
+`ci`（lint+test+构建校验+绑定校验）→ `deploy-staging` → `deploy-prod`。
 
-```bash
-export CLOUDFLARE_API_TOKEN=...
-node build.mjs
-npx wrangler kv namespace create KV   # 把 id 填入 wrangler.deploy.toml
-npx wrangler deploy --config wrangler.deploy.toml
-npx wrangler secret put ADMIN_PASSWORD --config wrangler.deploy.toml
+需要 repo secrets：`CF_API_TOKEN`、`CF_ACCOUNT_ID`、`ADMIN_PASSWORD`。
+
+| env | Worker 名 | KV | R2 |
+|---|---|---|---|
+| staging | chsi-workers-staging | chsi-workers-staging-kv | chsi-photos |
+| prod | chsi-workers | xuexin-demo-kv | chsi-photos |
+
+> 注意：`wrangler.jsonc` 里 KV/R2 必须在**每个 env 内**显式声明
+> —— wrangler 的 env 不继承顶层 `kv_namespaces` / `r2_buckets`，漏写会静默部署出无绑定的 Worker。
+> `apps/api/src/index.js` 是仅存的后端入口；旧版 `public/` + `src/worker.js` 已由 monorepo 结构取代。
+
+## 数据模型
+
 ```
-
-## KV key 设计
-
-- `user:<username>` → 用户（含 salt/passHash/role）
-- `session:<token>` → 会话（TTL 7 天）
-- `student:<ownerId>:<sid>` → 学籍记录
-- `captcha:<cid>` → 验证码（TTL 5 分钟，一次性）
-- `rl:<ip>` → 查询限流计数（TTL 60 秒）
+user:<username>            { id, username, salt, passHash, role, orgId, tokenVersion }
+session:<uid>:<token>      会话（7 天）
+sidx:<token>               token → uid 索引
+student:<uid>:<sid>        学籍记录（照片只存 key，不存字节）
+photo:photos/<sid>/<n>.bin 照片（R2 优先，降级 KV）
+idx:<sha256(name|id)>      公开查询索引
+site:settings              站点设置（站名/机构名/演示标识开关）
+```
