@@ -1,9 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "xuexin-demo",
+  // 顶层 = 本地 wrangler dev 用（与线上正式名一致，避免 dev 与线上错位）
+  "name": "chsi-workers",
   "main": "src/index.js",
   "compatibility_date": "2026-10-01",
   "account_id": "df9099b08aefcec67ce14c18f00c7b52",
+  // KV / R2 必须显式写在每个 env 里：wrangler 的 env 不继承顶层 kv_namespaces / r2_buckets
   "kv_namespaces": [
     { "binding": "KV", "id": "3916197cddd64ffd8dd2522e57c732c6" }
   ],
@@ -11,18 +13,31 @@
     { "binding": "R2", "bucket_name": "chsi-photos" }
   ],
   "vars": {
-    "VERSION": "v2-refactor"
+    "VERSION": "local"
   },
   "assets": {
     "directory": "../web/public"
   },
   "env": {
     "staging": {
-      "name": "xuexin-demo-staging",
-      "vars": { "VERSION": "staging" }
+      "name": "chsi-workers-staging",
+      "vars": { "VERSION": "staging" },
+      "kv_namespaces": [
+        { "binding": "KV", "id": "56e85c1ff56c41659c86747dfd9cedf5" }
+      ],
+      "r2_buckets": [
+        { "binding": "R2", "bucket_name": "chsi-photos" }
+      ]
     },
     "prod": {
-      "vars": { "VERSION": "prod" }
+      "name": "chsi-workers",
+      "vars": { "VERSION": "prod" },
+      "kv_namespaces": [
+        { "binding": "KV", "id": "3916197cddd64ffd8dd2522e57c732c6" }
+      ],
+      "r2_buckets": [
+        { "binding": "R2", "bucket_name": "chsi-photos" }
+      ]
     }
   }
 }
