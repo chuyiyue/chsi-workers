@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  # 顶层 = 线上正式名；staging 显式覆盖成 xuexin-demo-staging
+  # 顶层 = 线上正式名（chsi-workers）；staging 显式覆盖成 chsi-workers-staging
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
 jobs:
